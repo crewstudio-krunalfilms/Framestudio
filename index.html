@@ -400,6 +400,7 @@ footer{background:var(--mocha2);padding:clamp(2.5rem,5vw,4rem) clamp(1.25rem,4vw
   .section{padding-left:1.1rem;padding-right:1.1rem}
 }
 </style>
+<script type="module" src="firebase-init.js"></script>
 </head>
 <body>
 
@@ -1092,15 +1093,28 @@ function switchAuthTab(tab){
   document.getElementById('auth-signup').style.display=tab==='signup'?'block':'none';
 }
 
-function doGoogleAuth(mode){
+async function doGoogleAuth(mode){
   showToast('Connecting to Google...','info');
-  setTimeout(()=>{
-    completeLogin('Krunal Prajapati','KrunalFilms','krunal.g@gmail.com', mode==='signup');
+  try{
+    const user = await window.FrameStudioFirebase.signInGoogle();
+    const existingProfile = await window.FrameStudioFirebase.getStudioProfile(user.uid);
+    const isNewUser = !existingProfile;
+    if(isNewUser){
+      await window.FrameStudioFirebase.createStudioProfile(user.uid, {
+        name: user.displayName || 'Studio Owner',
+        studio: (user.displayName||'My Studio') + ' Studio',
+        email: user.email
+      });
+    }
+    await completeLogin(user.uid, isNewUser);
     showToast('Signed in with Google ✦','success');
-  },800);
+  }catch(err){
+    console.error('Google auth error:', err);
+    showToast('Google sign-in failed: '+(err.message||'please try again'),'error');
+  }
 }
 
-function doLogin(mode){
+async function doLogin(mode){
   if(mode==='signin'){
     const email=document.getElementById('si-email').value;
     const pass=document.getElementById('si-pass').value;
@@ -1110,38 +1124,59 @@ function doLogin(mode){
     if(!valid){showToast('Please fix the errors below','error');return}
     const btn=document.getElementById('signinBtn');
     btn.textContent='Signing in...';btn.disabled=true;
-    setTimeout(()=>{
-      btn.textContent='Sign in to studio';btn.disabled=false;
-      completeLogin(email.split('@')[0],'My Studio',email,false);
+    try{
+      const user = await window.FrameStudioFirebase.signInEmail(email, pass);
+      await completeLogin(user.uid, false);
       showToast('Welcome back ✦','success');
-    },700);
+    }catch(err){
+      console.error('Sign in error:', err);
+      let msg = 'Sign in failed';
+      if(err.code==='auth/invalid-credential'||err.code==='auth/wrong-password'||err.code==='auth/user-not-found') msg='Incorrect email or password';
+      showToast(msg,'error');
+    }finally{
+      btn.textContent='Sign in to studio';btn.disabled=false;
+    }
   } else {
     const studio=document.getElementById('su-studio').value||'My Studio';
     const name=document.getElementById('su-name').value||'Studio Owner';
     const email=document.getElementById('su-email').value;
+    const pass=document.getElementById('su-pass').value;
     if(!isValidEmail(email)){showFieldError('su-email','su-email-err',true);showToast('Please enter a valid email','error');return}
     showFieldError('su-email','su-email-err',false);
+    if(!pass || pass.length<6){showToast('Password must be at least 6 characters','error');return}
     const btn=document.getElementById('signupBtn');
     btn.textContent='Creating studio...';btn.disabled=true;
-    setTimeout(()=>{
-      btn.textContent='Create my studio';btn.disabled=false;
-      completeLogin(name,studio,email,true);
+    try{
+      const user = await window.FrameStudioFirebase.signUpEmail(email, pass);
+      await window.FrameStudioFirebase.createStudioProfile(user.uid, { name, studio, email });
+      await completeLogin(user.uid, true);
       showToast('Studio created ✦','success');
-    },800);
+    }catch(err){
+      console.error('Sign up error:', err);
+      let msg = 'Could not create account';
+      if(err.code==='auth/email-already-in-use') msg='An account with this email already exists';
+      showToast(msg,'error');
+    }finally{
+      btn.textContent='Create my studio';btn.disabled=false;
+    }
   }
 }
 
-function completeLogin(name,studio,email,isNewUser){
+async function completeLogin(uid, isNewUser){
   isLoggedIn=true;
-  currentUser={name,studio,email};
+  const profile = await window.FrameStudioFirebase.getStudioProfile(uid);
+  currentUser={uid, name:profile.name, studio:profile.studio, email:profile.email};
+  driveConnected = !!(profile.drive && profile.drive.connected);
   document.getElementById('navRight').style.display='none';
   document.getElementById('navRightLogged').style.display='flex';
-  document.getElementById('userBadge').textContent=studio;
+  document.getElementById('userBadge').textContent=profile.studio;
   document.getElementById('mobNavRight').style.display='none';
   document.getElementById('mobNavRightLogged').style.display='flex';
-  document.getElementById('dashUserName').textContent=name.split(' ')[0];
-  document.getElementById('profileStudioName').value=studio;
-  document.getElementById('profileEmail').value=email;
+  document.getElementById('dashUserName').textContent=profile.name.split(' ')[0];
+  document.getElementById('profileStudioName').value=profile.studio;
+  document.getElementById('profileEmail').value=profile.email;
+  updateDriveUI();
+  galleries = await window.FrameStudioFirebase.getGalleries(uid);
   renderOverview();
   renderGalleryCards();
   if(isNewUser && !driveConnected){
@@ -1151,9 +1186,11 @@ function completeLogin(name,studio,email,isNewUser){
   }
 }
 
-function doLogout(){
+async function doLogout(){
+  await window.FrameStudioFirebase.signOutUser();
   isLoggedIn=false;
   currentUser=null;
+  galleries=[];
   document.getElementById('navRight').style.display='flex';
   document.getElementById('navRightLogged').style.display='none';
   document.getElementById('mobNavRight').style.display='flex';
@@ -1164,14 +1201,8 @@ function doLogout(){
 
 // ============ ONBOARDING ============
 function onboardConnectDrive(){
-  showToast('Connecting to Google Drive...','info');
-  setTimeout(()=>{
-    driveConnected=true;
-    driveEmail=currentUser?currentUser.email:'studio@gmail.com';
-    updateDriveUI();
-    showToast('Google Drive connected ✦','success');
-    showPage('dashboard');
-  },1100);
+  if(!currentUser){ showToast('Please sign in first','error'); return; }
+  window.location.href = '/api/auth/google/start?studioId=' + encodeURIComponent(currentUser.uid);
 }
 function skipOnboard(){
   showPage('dashboard');
@@ -1180,15 +1211,14 @@ function skipOnboard(){
 
 // ============ DRIVE CONNECT (in-dashboard) ============
 function dcConnect(){
-  showToast('Connecting to Google Drive...','info');
-  setTimeout(()=>{
-    driveConnected=true;
-    driveEmail=currentUser?currentUser.email:'studio@gmail.com';
-    updateDriveUI();
-    showToast('Google Drive connected ✦','success');
-  },1100);
+  if(!currentUser){ showToast('Please sign in first','error'); return; }
+  window.location.href = '/api/auth/google/start?studioId=' + encodeURIComponent(currentUser.uid);
 }
-function dcDisconnect(){
+async function dcDisconnect(){
+  if(!currentUser) return;
+  await window.FrameStudioFirebase.updateStudioProfile(currentUser.uid, {
+    drive: { connected:false }
+  });
   driveConnected=false;
   updateDriveUI();
   showToast('Google Drive disconnected','info');
@@ -1238,36 +1268,39 @@ function openNewGalleryModal(){
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
-function createGallery(){
+async function createGallery(){
   const bride=document.getElementById('ng-bride').value.trim();
   const groom=document.getElementById('ng-groom').value.trim();
   const date=document.getElementById('ng-date').value;
   const location=document.getElementById('ng-location').value.trim();
   if(!bride||!groom){ showToast('Please enter both names','error'); return; }
-  const id=(bride+'-'+groom+'-'+Date.now()).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  if(!currentUser){ showToast('Please sign in first','error'); return; }
   const coupleNames=bride+' & '+groom;
   const folderName=coupleNames+' — '+(date||'Wedding');
+  const shareId=(bride+'-'+groom+'-'+Date.now()).toLowerCase().replace(/[^a-z0-9]+/g,'-');
   const gallery={
-    id,bride,groom,coupleNames,date,location,
-    title:coupleNames+' Wedding',folderName,
+    bride,groom,coupleNames,date,location,
+    title:coupleNames+' Wedding',folderName,shareId,
     coverGradient:'linear-gradient(135deg,#e8d5c4,#c4a080)',
     access:'password',password:Math.random().toString(36).slice(2,8),
-    photoCount:0,videoCount:0,viewCount:0,downloadCount:0,
-    photos:[],videos:[],activity:[],
-    permissions:{download:true,downloadall:true,likes:true,share:true,requireinfo:true},
-    createdAt:new Date().toISOString()
+    activity:[],
+    permissions:{download:true,downloadall:true,likes:true,share:true,requireinfo:true}
   };
-  galleries.push(gallery);
-  showToast('Creating Drive folder "'+folderName+'"...','info');
-  setTimeout(()=>{
-    showToast('Gallery created + Drive folder ready ✦','success');
+  showToast('Creating gallery + Drive folder "'+folderName+'"...','info');
+  try{
+    const newId = await window.FrameStudioFirebase.createGallery(currentUser.uid, gallery);
+    showToast('Gallery created ✦','success');
     closeModal('newGalleryModal');
+    galleries = await window.FrameStudioFirebase.getGalleries(currentUser.uid);
     renderGalleryCards();
     renderOverview();
     document.getElementById('ng-bride').value='';document.getElementById('ng-groom').value='';
     document.getElementById('ng-date').value='';document.getElementById('ng-location').value='';
-    openGalleryEditor(id);
-  },900);
+    openGalleryEditor(newId);
+  }catch(err){
+    console.error('Create gallery error:', err);
+    showToast('Could not create gallery: '+(err.message||'please try again'),'error');
+  }
 }
 
 function renderGalleryCards(){
@@ -1399,44 +1432,92 @@ function duRenderEdQueue(){
   const btn=document.getElementById('edStartBtn');
   if(btn) btn.disabled=edFiles.filter(f=>f.status==='waiting').length===0;
 }
-function edStartUpload(){
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function edStartUpload(){
   if(!driveConnected){showToast('Connect Google Drive first','error');return;}
+  if(!currentUser){showToast('Please sign in first','error');return;}
   const waiting=edFiles.filter(f=>f.status==='waiting');
   if(!waiting.length)return;
   const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g){showToast('Gallery not found','error');return;}
   document.getElementById('edOpWrap').style.display='block';
   document.getElementById('edStartBtn').disabled=true;
   document.getElementById('edTotal').textContent=waiting.length;
   let done=0;
-  function next(idx){
-    if(idx>=waiting.length){ finish(); return; }
-    const item=waiting[idx]; item.status='uploading'; item.progress=0; duRenderEdQueue();
-    const steps=16; const ms=Math.max(500,item.size/9000)/steps; let s=0;
-    const iv=setInterval(()=>{
-      s++; item.progress=Math.min(99,Math.round(s/steps*100));
-      const pEl=document.getElementById('efp'+edFiles.indexOf(item)); if(pEl) pEl.style.width=item.progress+'%';
-      const pct=Math.round((done/waiting.length+item.progress/(100*waiting.length))*100);
-      document.getElementById('edPct').textContent=pct+'%';
-      document.getElementById('edBarFill').style.width=pct+'%';
-      if(s>=steps){
-        clearInterval(iv); item.status='done'; item.progress=100; done++;
-        document.getElementById('edDone').textContent=done;
-        if(g){ if(item.type.startsWith('image/')){g.photoCount++; g.photos.push({name:item.name});} else {g.videoCount++;} }
-        duRenderEdQueue(); next(idx+1);
-      }
-    },ms);
+  let newPhotoCount=0, newVideoCount=0;
+  const newPhotos=[], newVideos=[];
+
+  for(let idx=0; idx<waiting.length; idx++){
+    const item=waiting[idx];
+    item.status='uploading'; item.progress=10; duRenderEdQueue();
+    try{
+      const base64 = await fileToBase64(item.file);
+      const pEl=document.getElementById('efp'+edFiles.indexOf(item)); if(pEl) pEl.style.width='50%';
+
+      const response = await fetch('/api/drive/upload', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          studioId: currentUser.uid,
+          galleryFolderName: g.folderName,
+          fileName: item.name,
+          fileType: item.type,
+          fileBase64: base64
+        })
+      });
+      const data = await response.json();
+      if(!response.ok) throw new Error(data.error || 'Upload failed');
+
+      item.status='done'; item.progress=100; done++;
+      document.getElementById('edDone').textContent=done;
+      if(item.type.startsWith('image/')){ newPhotoCount++; newPhotos.push({name:item.name, driveId:data.fileId, url:data.directLink}); }
+      else { newVideoCount++; newVideos.push({name:item.name, driveId:data.fileId, url:data.directLink}); }
+    }catch(err){
+      console.error('Upload error for', item.name, err);
+      item.status='failed';
+      showToast('Failed to upload '+item.name+': '+(err.message||'unknown error'),'error');
+    }
+    const pct=Math.round(((idx+1)/waiting.length)*100);
+    document.getElementById('edPct').textContent=pct+'%';
+    document.getElementById('edBarFill').style.width=pct+'%';
+    duRenderEdQueue();
   }
-  next(0);
-  function finish(){
-    document.getElementById('edBarFill').style.width='100%';
-    document.getElementById('edBarFill').style.background='var(--success)';
-    document.getElementById('edPct').textContent='100%';
-    document.getElementById('edDoneMsg').style.display='inline';
-    document.getElementById('edStartBtn').disabled=false;
-    document.getElementById('editorGalleryMeta').textContent=g.folderName+' · '+g.photoCount+' photos · '+g.videoCount+' films';
-    renderGalleryCards(); renderOverview(); renderSortableGrid(g);
-    showToast(waiting.length+' file(s) uploaded to Drive ✦','success');
+
+  if(newPhotoCount>0 || newVideoCount>0){
+    try{
+      await window.FrameStudioFirebase.updateGallery(currentUser.uid, g.id, {
+        photoCount: (g.photoCount||0) + newPhotoCount,
+        videoCount: (g.videoCount||0) + newVideoCount,
+        photos: [...(g.photos||[]), ...newPhotos],
+        videos: [...(g.videos||[]), ...newVideos]
+      });
+      g.photoCount = (g.photoCount||0) + newPhotoCount;
+      g.videoCount = (g.videoCount||0) + newVideoCount;
+      g.photos = [...(g.photos||[]), ...newPhotos];
+      g.videos = [...(g.videos||[]), ...newVideos];
+    }catch(err){
+      console.error('Failed to save gallery update:', err);
+    }
   }
+
+  document.getElementById('edBarFill').style.background = done===waiting.length ? 'var(--success)' : 'var(--error)';
+  document.getElementById('edDoneMsg').style.display='inline';
+  document.getElementById('edStartBtn').disabled=false;
+  document.getElementById('editorGalleryMeta').textContent=g.folderName+' · '+g.photoCount+' photos · '+g.videoCount+' films';
+  renderGalleryCards(); renderOverview(); renderSortableGrid(g);
+  if(done>0) showToast(done+' of '+waiting.length+' file(s) uploaded to Drive ✦','success');
 }
 document.addEventListener('DOMContentLoaded',()=>{
   const dz=document.getElementById('edDropZone');
@@ -1618,6 +1699,31 @@ function seedDemo(){
 document.addEventListener('DOMContentLoaded',()=>{
   updateDriveUI();
   document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
+
+  // Handle redirect back from Google Drive OAuth
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('drive_connected')==='true'){
+    driveConnected = true;
+    updateDriveUI();
+    showToast('Google Drive connected ✦','success');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+  if(params.get('drive_error')){
+    showToast('Drive connection failed: '+params.get('drive_error'),'error');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  // Keep the user signed in across page reloads
+  const waitForFirebase = setInterval(()=>{
+    if(window.FrameStudioFirebase){
+      clearInterval(waitForFirebase);
+      window.FrameStudioFirebase.onAuthChange(async (user)=>{
+        if(user && !isLoggedIn){
+          await completeLogin(user.uid, false);
+        }
+      });
+    }
+  }, 100);
 });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('newGalleryModal'); closeModal('shareModal'); }});
 window.addEventListener('resize',()=>{
