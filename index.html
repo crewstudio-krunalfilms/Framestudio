@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>FrameStudio — Wedding Gallery Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --cream:#faf6f1;--cream2:#f5ede3;--cream3:#efe4d6;
+  --blush:#e8c9b4;--blush2:#d4a98a;--blush3:#c49070;
+  --rose:#b87558;--rose2:#9a6040;
+  --mocha:#6b4c38;--mocha2:#4a3328;
+  --warm:#f0e6da;
+  --text:#3a2a1e;--text2:#6b5545;--text3:#9a8070;--text4:#c4afa0;
+  --white:#ffffff;
+  --border:rgba(180,144,112,0.2);--border2:rgba(180,144,112,0.35);--border3:rgba(180,144,112,0.55);
+  --shadow:rgba(107,76,56,0.12);
+  --gold:#c9956e;--gold2:#e8b898;
+  --success:#4a7a4a;--success-bg:#e8f0e4;
+  --error:#c45a4a;--error-bg:#f5e4e0;
+  --nav-h:64px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden;min-width:320px}
+button,input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:var(--cream2)}
+::-webkit-scrollbar-thumb{background:var(--blush3);border-radius:4px}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+
+/* ===== PAGE SYSTEM ===== */
+.page{display:none;min-height:100vh;animation:fadeIn 0.4s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+/* ===== NAV ===== */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;height:var(--nav-h);display:flex;align-items:center;padding:0 clamp(1rem,4vw,3rem);justify-content:space-between;background:rgba(250,246,241,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);transition:box-shadow 0.3s}
+nav.scrolled{box-shadow:0 4px 20px var(--shadow)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:clamp(18px,2vw,21px);color:var(--mocha);cursor:pointer;border:none;background:none}
+.nav-logo em{font-style:italic;color:var(--rose)}
+.nav-center{display:flex;gap:clamp(1.2rem,2.5vw,2.2rem);align-items:center}
+.nav-link{font-size:13px;color:var(--text2);cursor:pointer;letter-spacing:0.06em;text-transform:uppercase;border:none;background:none;transition:color 0.2s;position:relative;padding:6px 0}
+.nav-link::after{content:'';position:absolute;bottom:0;left:0;width:0;height:1px;background:var(--rose);transition:width 0.3s}
+.nav-link:hover{color:var(--rose)}
+.nav-link.active-nav{color:var(--rose)}
+.nav-link.active-nav::after{width:100%}
+.nav-right{display:flex;gap:0.6rem;align-items:center;flex-shrink:0}
+.btn-ghost{padding:8px 18px;border:1px solid var(--border3);color:var(--text2);background:transparent;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.25s}
+.btn-ghost:hover{background:var(--warm);border-color:var(--blush3);color:var(--mocha)}
+.btn-solid{padding:8px 20px;background:var(--rose);color:var(--white);border:1px solid var(--rose);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.25s}
+.btn-solid:hover{background:var(--rose2);box-shadow:0 4px 14px rgba(184,117,88,0.3)}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:38px;height:38px;border:none;background:none;cursor:pointer}
+.hamburger span{display:block;width:22px;height:1.5px;background:var(--mocha);transition:all 0.3s;margin:0 auto}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.mobile-drawer{display:none;position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;background:var(--cream);z-index:450;padding:2rem 1.5rem;overflow-y:auto;transform:translateX(100%);transition:transform 0.35s ease}
+.mobile-drawer.open{display:block;transform:translateX(0)}
+.mobile-drawer .nav-link{display:block;padding:14px 0;font-size:16px;border-bottom:1px solid var(--border);width:100%;text-align:left}
+.mobile-drawer .nav-right{flex-direction:column;align-items:stretch;margin-top:1.5rem;gap:0.75rem}
+.mobile-drawer .btn-ghost,.mobile-drawer .btn-solid{width:100%;padding:13px;text-align:center}
+
+/* ===== TOAST ===== */
+.toast-wrap{position:fixed;top:80px;right:1.25rem;z-index:1300;display:flex;flex-direction:column;gap:0.6rem;max-width:min(360px,90vw)}
+.toast{background:var(--mocha);color:var(--blush);padding:13px 18px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 32px rgba(0,0,0,0.2);animation:toastIn 0.35s ease;border-left:3px solid var(--rose)}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--error)}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* ===== SECTION COMMONS ===== */
+.section{padding:clamp(3rem,6vw,5.5rem) clamp(1.25rem,4vw,5rem)}
+.section-inner{max-width:1180px;margin:0 auto}
+.section-tag{font-size:11px;letter-spacing:0.3em;color:var(--blush3);text-transform:uppercase;margin-bottom:0.85rem;display:flex;align-items:center;gap:0.7rem}
+.section-tag::before{content:'';width:26px;height:1px;background:var(--blush3)}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(26px,3.6vw,44px);font-weight:400;line-height:1.18;color:var(--mocha);margin-bottom:1rem}
+.section-title em{font-style:italic;color:var(--rose)}
+.section-sub{font-size:14px;color:var(--text2);line-height:1.75;font-weight:300;max-width:560px}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s ease,transform 0.7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.delay1{transition-delay:0.08s}.delay2{transition-delay:0.16s}.delay3{transition-delay:0.24s}.delay4{transition-delay:0.32s}
+.btn-rose{padding:12px 30px;background:var(--rose);color:var(--white);border:1px solid var(--rose);font-size:12px;letter-spacing:0.13em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.btn-rose:hover{background:var(--rose2);transform:translateY(-1px);box-shadow:0 8px 22px rgba(184,117,88,0.3)}
+.btn-outline-rose{padding:12px 30px;background:transparent;color:var(--rose);border:1px solid var(--rose);font-size:12px;letter-spacing:0.13em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
+.btn-outline-rose:hover{background:var(--rose);color:var(--white)}
+
+/* ===== HOME / SHOWCASE HERO ===== */
+.hero{min-height:calc(100vh - var(--nav-h));display:grid;grid-template-columns:1.05fr 1fr;position:relative;overflow:hidden;padding-top:var(--nav-h)}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:clamp(2.5rem,5vw,5rem) clamp(1.5rem,4vw,4rem);position:relative;z-index:2}
+.hero-tag{font-size:11px;letter-spacing:0.3em;color:var(--blush3);text-transform:uppercase;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.7rem}
+.hero-tag::before{content:'';width:28px;height:1px;background:var(--blush3)}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(36px,5.2vw,64px);font-weight:400;line-height:1.1;color:var(--mocha);margin-bottom:1.25rem;opacity:0;animation:slideUp 0.8s 0.15s forwards}
+.hero-title em{font-style:italic;color:var(--rose);display:block}
+.hero-sub{font-size:clamp(14px,1.6vw,16px);color:var(--text2);line-height:1.75;max-width:440px;margin-bottom:2rem;font-weight:300;opacity:0;animation:slideUp 0.8s 0.3s forwards}
+.hero-actions{display:flex;gap:0.85rem;flex-wrap:wrap;opacity:0;animation:slideUp 0.8s 0.45s forwards}
+.hero-right{position:relative;overflow:hidden;background:var(--cream2);min-height:340px}
+.hero-mosaic{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%;gap:3px}
+.mosaic-item{position:relative;overflow:hidden;cursor:pointer}
+.mosaic-item:first-child{grid-row:span 2}
+.mosaic-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(74,51,40,0.35);transition:transform 0.6s}
+.mosaic-item:hover .mosaic-bg{transform:scale(1.05)}
+.mosaic-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(74,51,40,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.35s}
+.mosaic-item:hover .mosaic-overlay{opacity:1}
+.mosaic-label{position:absolute;bottom:1rem;left:1rem;font-family:'Playfair Display',serif;font-size:14px;color:var(--white);opacity:0;transform:translateY(8px);transition:all 0.35s}
+.mosaic-item:hover .mosaic-label{opacity:1;transform:translateY(0)}
+.m1{background:linear-gradient(135deg,#e8d5c4,#d4b89a,#c4a080)}
+.m2{background:linear-gradient(135deg,#e0cdc0,#c8b0a0,#b89888)}
+.m3{background:linear-gradient(135deg,#ead8cc,#d8c0b0,#c8a890)}
+.m4{background:linear-gradient(135deg,#f0e0d4,#e0c8b8,#d0b098)}
+.orb{position:absolute;border-radius:50%;pointer-events:none;opacity:0.5}
+.orb1{width:280px;height:280px;background:radial-gradient(circle,rgba(232,200,180,0.4),transparent 70%);top:-70px;right:-70px}
+
+/* ===== HOW IT WORKS (showcase explainer) ===== */
+.flow-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:2.8rem;background:var(--border)}
+.flow-card{background:var(--cream);padding:1.85rem 1.5rem;position:relative}
+.flow-num{font-family:'Playfair Display',serif;font-size:13px;color:var(--blush3);margin-bottom:1rem;letter-spacing:0.1em}
+.flow-icon{font-size:26px;margin-bottom:0.9rem}
+.flow-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--mocha);margin-bottom:0.55rem}
+.flow-text{font-size:12.5px;color:var(--text2);line-height:1.7;font-weight:300}
+
+/* ===== PRODUCT PREVIEW MOCK (showcase) ===== */
+.preview-frame{background:var(--white);border:1px solid var(--border);box-shadow:0 30px 70px var(--shadow);overflow:hidden;margin-top:2.5rem}
+.preview-topbar{background:var(--cream2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.preview-dot{width:9px;height:9px;border-radius:50%;background:var(--border3)}
+.preview-url{flex:1;text-align:center;font-size:11px;color:var(--text3);letter-spacing:0.04em}
+.preview-body{display:grid;grid-template-columns:200px 1fr;min-height:340px}
+.preview-side{background:var(--mocha2);padding:1.25rem 1rem}
+.preview-side-item{padding:8px 0.75rem;font-size:11.5px;color:rgba(232,185,152,0.55);border-radius:2px;margin-bottom:3px}
+.preview-side-item.active{background:rgba(232,185,152,0.1);color:var(--gold2)}
+.preview-main{padding:1.5rem;background:var(--cream)}
+.preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:1rem}
+.preview-thumb{aspect-ratio:1;background:var(--cream3)}
+
+/* ===== STATS ===== */
+.stats-strip{background:var(--warm);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.2rem clamp(1.25rem,4vw,5rem);display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem}
+.stat-item{text-align:center;padding:0.5rem;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Playfair Display',serif;font-size:clamp(26px,3.4vw,40px);color:var(--rose);line-height:1;margin-bottom:0.4rem}
+.stat-label{font-size:11px;letter-spacing:0.1em;color:var(--text3);text-transform:uppercase}
+
+/* ===== FEATURE LIST (storage explainer) ===== */
+.storage-diagram{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:0.75rem;margin-top:2rem;background:var(--white);border:1px solid var(--border);padding:1.75rem}
+.sd-box{text-align:center;padding:0.5rem}
+.sd-icon{font-size:30px;margin-bottom:0.6rem}
+.sd-label{font-size:13px;font-weight:500;color:var(--mocha);margin-bottom:3px}
+.sd-sub{font-size:11px;color:var(--text3);line-height:1.5}
+.sd-arrow{font-size:20px;color:var(--blush3);text-align:center}
+.sd-highlight{background:rgba(184,117,88,0.06);border:1px solid rgba(184,117,88,0.2);padding:0.85rem}
+
+/* ===== FOOTER ===== */
+footer{background:var(--mocha2);padding:clamp(2.5rem,5vw,4rem) clamp(1.25rem,4vw,5rem);color:var(--blush)}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:2.2rem;margin-bottom:2.5rem}
+.footer-logo{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold2);margin-bottom:0.85rem}
+.footer-logo em{font-style:italic;color:var(--blush)}
+.footer-desc{font-size:12.5px;color:rgba(232,185,152,0.5);line-height:1.75;font-weight:300;max-width:260px}
+.footer-col-title{font-size:9.5px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(232,185,152,0.4);margin-bottom:1rem}
+.footer-link{display:block;font-size:12.5px;color:rgba(232,185,152,0.6);cursor:pointer;margin-bottom:0.55rem;transition:color 0.2s;border:none;background:none;text-align:left;padding:0}
+.footer-link:hover{color:var(--gold2)}
+.footer-bottom{border-top:1px solid rgba(232,185,152,0.1);padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-copy{font-size:11.5px;color:rgba(232,185,152,0.3)}
+
+/* ===== AUTH ===== */
+.auth-wrap{min-height:calc(100vh - var(--nav-h));display:grid;grid-template-columns:1fr 1fr;padding-top:var(--nav-h)}
+.auth-left{background:var(--mocha2);display:flex;align-items:center;justify-content:center;padding:3rem;position:relative;overflow:hidden}
+.auth-left-orb{position:absolute;width:340px;height:340px;background:radial-gradient(circle,rgba(200,144,100,0.15),transparent 70%);top:-90px;left:-90px}
+.auth-left-content{position:relative;z-index:1;text-align:center;max-width:340px}
+.auth-left-logo{font-family:'Playfair Display',serif;font-size:30px;color:var(--gold2);margin-bottom:0.5rem}
+.auth-left-logo em{font-style:italic;color:var(--blush)}
+.auth-left-sub{font-size:13.5px;color:rgba(232,185,152,0.6);line-height:1.75;font-weight:300;margin-bottom:2rem}
+.auth-left-feature{display:flex;align-items:center;gap:0.7rem;font-size:12.5px;color:rgba(232,185,152,0.7);margin-bottom:0.75rem;text-align:left}
+.auth-left-feature-dot{width:5px;height:5px;background:var(--blush3);border-radius:50%;flex-shrink:0}
+.auth-right{display:flex;align-items:center;justify-content:center;padding:clamp(1.5rem,4vw,3rem);background:var(--cream)}
+.auth-box{width:100%;max-width:400px}
+.auth-box-title{font-family:'Playfair Display',serif;font-size:26px;color:var(--mocha);margin-bottom:0.4rem}
+.auth-box-sub{font-size:13.5px;color:var(--text2);margin-bottom:1.5rem;font-weight:300}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:9px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s}
+.auth-tab.active{color:var(--rose);border-bottom-color:var(--rose)}
+.google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:var(--white);border:1px solid var(--border3);font-size:13px;color:var(--text);cursor:pointer;transition:all 0.25s;margin-bottom:1.1rem}
+.google-btn:hover{border-color:var(--blush3);box-shadow:0 4px 14px var(--shadow)}
+.divider-or{display:flex;align-items:center;gap:1rem;margin-bottom:1.1rem;font-size:11px;color:var(--text4);letter-spacing:0.1em;text-transform:uppercase}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border)}
+.form-row{margin-bottom:1.1rem}
+.form-label{display:block;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:0.4rem}
+.form-input{width:100%;background:var(--warm);border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-size:14px;font-weight:300;transition:all 0.2s;outline:none}
+.form-input:focus{border-color:var(--blush3);background:var(--white);box-shadow:0 0 0 3px rgba(196,144,112,0.1)}
+.form-input::placeholder{color:var(--text4)}
+.form-input.error{border-color:var(--error)}
+.form-error-msg{font-size:11px;color:var(--error);margin-top:4px;display:none}
+.form-submit{width:100%;padding:13px;background:var(--rose);color:var(--white);border:none;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;transition:all 0.3s;margin-top:0.4rem}
+.form-submit:hover{background:var(--rose2)}
+.form-submit:disabled{opacity:0.6;cursor:wait}
+.form-note{font-size:12px;color:var(--text3);text-align:center;margin-top:1.3rem;line-height:1.7}
+.form-note a{color:var(--rose);cursor:pointer;text-decoration:none}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem}
+
+/* ===== ONBOARDING (post-signup connect-drive walkthrough) ===== */
+.onboard-wrap{min-height:calc(100vh - var(--nav-h));padding-top:var(--nav-h);display:flex;align-items:center;justify-content:center;background:var(--cream2)}
+.onboard-box{max-width:560px;width:100%;padding:clamp(1.5rem,4vw,3rem);text-align:center}
+.onboard-steps{display:flex;justify-content:center;gap:0.5rem;margin-bottom:2rem}
+.ob-dot{width:32px;height:3px;background:var(--border2);transition:background 0.3s}
+.ob-dot.active{background:var(--rose)}
+.ob-dot.done{background:var(--blush3)}
+.onboard-icon{font-size:46px;margin-bottom:1.2rem;animation:floatY 3s ease-in-out infinite}
+.onboard-title{font-family:'Playfair Display',serif;font-size:clamp(22px,3.4vw,30px);color:var(--mocha);margin-bottom:0.75rem}
+.onboard-title em{font-style:italic;color:var(--rose)}
+.onboard-text{font-size:14px;color:var(--text2);line-height:1.8;font-weight:300;margin-bottom:2rem;max-width:440px;margin-left:auto;margin-right:auto}
+.onboard-perm-list{text-align:left;background:var(--white);border:1px solid var(--border);padding:1.25rem;margin-bottom:1.75rem}
+.onboard-perm{display:flex;gap:0.75rem;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.6}
+.onboard-perm:last-child{border-bottom:none}
+
+/* ===== DASHBOARD ===== */
+.dashboard-wrap{min-height:calc(100vh - var(--nav-h));display:grid;grid-template-columns:220px 1fr;padding-top:var(--nav-h)}
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:1.5rem 0;height:calc(100vh - var(--nav-h));position:sticky;top:var(--nav-h);overflow-y:auto}
+.sidebar-section-label{font-size:9.5px;letter-spacing:0.25em;text-transform:uppercase;color:var(--text4);padding:0 1.3rem;margin-bottom:0.5rem;margin-top:1.3rem}
+.sidebar-section-label:first-of-type{margin-top:0}
+.sidebar-item{display:flex;align-items:center;gap:0.7rem;padding:9px 1.3rem;font-size:13px;color:var(--text2);cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all 0.2s;border-left:2px solid transparent}
+.sidebar-item:hover{color:var(--rose);background:var(--cream2)}
+.sidebar-item.active{color:var(--rose);background:var(--cream2);border-left-color:var(--rose);font-weight:500}
+.sidebar-icon{font-size:14px;opacity:0.7;flex-shrink:0;width:16px;text-align:center}
+.drive-pill{display:flex;align-items:center;gap:0.5rem;font-size:10.5px;padding:5px 1.3rem;color:var(--text3);margin-bottom:0.5rem}
+.drive-pill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.drive-pill.connected .drive-pill-dot{background:var(--success)}
+.drive-pill.disconnected .drive-pill-dot{background:var(--error)}
+.mobile-sidebar-toggle{display:none}
+.dash-main{padding:clamp(1.25rem,3vw,2.2rem);background:var(--cream);overflow-x:hidden}
+.dash-header{margin-bottom:1.8rem}
+.dash-greeting{font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,27px);color:var(--mocha);margin-bottom:0.2rem}
+.dash-greeting em{font-style:italic;color:var(--rose)}
+.dash-sub{font-size:13.5px;color:var(--text2);font-weight:300}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.85rem;margin-bottom:1.4rem;max-width:920px}
+.stat-card{background:var(--white);border:1px solid var(--border);padding:1.2rem;transition:all 0.25s}
+.stat-card:hover{border-color:var(--blush);transform:translateY(-2px)}
+.stat-big{font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,32px);color:var(--rose);line-height:1;margin-bottom:0.3rem}
+.stat-lbl{font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3)}
+.dash-card{background:var(--white);border:1px solid var(--border);padding:1.3rem}
+.dash-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap;gap:0.5rem}
+.dash-card-ttl{font-size:11.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3)}
+.dash-card-action{font-size:11.5px;color:var(--rose);cursor:pointer;border:none;background:none}
+.info-strip{background:rgba(184,117,88,0.06);border:1px solid rgba(184,117,88,0.2);border-left:3px solid var(--rose);padding:0.9rem 1.1rem;font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:1rem}
+.info-strip strong{color:var(--mocha)}
+.ok-strip{background:rgba(74,122,74,0.06);border:1px solid rgba(74,122,74,0.2);border-left:3px solid var(--success);padding:0.9rem 1.1rem;font-size:12.5px;color:var(--text2);line-height:1.7;margin-bottom:1rem}
+.dash-tab-panel{display:none}
+.dash-tab-panel.active{display:block}
+.empty-state{text-align:center;padding:3.5rem 1.5rem;color:var(--text4);background:var(--white);border:1px solid var(--border)}
+.empty-state-icon{font-size:34px;margin-bottom:0.85rem;opacity:0.3}
+
+/* ===== GALLERY CARDS GRID ===== */
+.gallery-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
+.gallery-card{background:var(--white);border:1px solid var(--border);overflow:hidden;transition:all 0.3s;cursor:pointer}
+.gallery-card:hover{border-color:var(--blush);box-shadow:0 14px 36px var(--shadow);transform:translateY(-3px)}
+.gc-cover{aspect-ratio:4/3;background:linear-gradient(135deg,#e8d5c4,#c4a080);position:relative;display:flex;align-items:flex-end}
+.gc-badge{position:absolute;top:0.7rem;right:0.7rem;font-size:9.5px;padding:3px 9px;letter-spacing:0.08em;text-transform:uppercase;border-radius:2px}
+.gc-badge.password{background:rgba(74,51,40,0.75);color:var(--blush)}
+.gc-badge.public{background:rgba(74,122,74,0.85);color:white}
+.gc-badge.unlisted{background:rgba(196,142,74,0.85);color:white}
+.gc-badge.draft{background:rgba(255,255,255,0.85);color:var(--text2)}
+.gc-info{padding:1rem 1.1rem}
+.gc-name{font-family:'Playfair Display',serif;font-size:16px;color:var(--mocha);margin-bottom:3px}
+.gc-meta{font-size:11px;color:var(--text3)}
+.gc-stats{display:flex;gap:0.85rem;margin-top:0.6rem;font-size:10.5px;color:var(--text4)}
+.gc-actions{display:flex;gap:0.4rem;margin-top:0.85rem;flex-wrap:wrap}
+.gc-action-btn{font-size:10.5px;padding:5px 10px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.2s}
+.gc-action-btn:hover{border-color:var(--rose);color:var(--rose)}
+
+/* ===== GALLERY EDITOR ===== */
+.editor-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.3rem;overflow-x:auto}
+.editor-tab{padding:9px 1.1rem;font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;white-space:nowrap}
+.editor-tab.active{color:var(--rose);border-bottom-color:var(--rose)}
+.editor-panel{display:none}
+.editor-panel.active{display:block}
+.upload-zone{border:2px dashed var(--border2);padding:2.2rem 1.25rem;text-align:center;cursor:pointer;transition:all 0.3s}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--rose);background:rgba(184,117,88,0.04)}
+.upload-zone-icon{font-size:28px;color:var(--blush3);margin-bottom:0.75rem}
+.url-row{display:flex;gap:0.6rem;margin-bottom:0.9rem;flex-wrap:wrap}
+.url-field{flex:1;min-width:160px;background:var(--cream2);border:1px solid var(--border2);color:var(--text);padding:10px 13px;font-size:13px;outline:none}
+.url-field:focus{border-color:var(--blush3)}
+.url-btn{padding:10px 20px;background:var(--rose);color:var(--white);border:none;font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.url-btn:hover{background:var(--rose2)}
+.file-item-row{display:flex;align-items:center;gap:0.85rem;padding:9px 12px;background:var(--white);border:1px solid var(--border);margin-bottom:5px}
+.file-item-row.uploading{border-color:var(--blush3)}
+.file-item-row.done{border-color:rgba(74,122,74,0.35);background:rgba(74,122,74,0.03)}
+.file-ico{width:38px;height:38px;background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;border-radius:2px}
+.file-nm{font-size:12.5px;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-st{font-size:11px;white-space:nowrap}
+.file-st.waiting{color:var(--text4)}
+.file-st.uploading{color:var(--rose)}
+.file-st.done{color:var(--success)}
+.fprog-wrap{height:3px;background:var(--cream3);margin-top:4px}
+.fprog-fill{height:100%;background:var(--rose);transition:width 0.2s}
+.op-wrap{background:var(--white);border:1px solid var(--border);padding:1.1rem;margin-bottom:1rem;display:none}
+.op-bar{height:5px;background:var(--cream3);overflow:hidden;margin:0.6rem 0}
+.op-bar-fill{height:100%;background:linear-gradient(to right,var(--rose),var(--gold));transition:width 0.25s}
+
+/* Sortable photo manager */
+.sortable-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.6rem}
+.sortable-item{position:relative;aspect-ratio:1;background:var(--cream3);border:1px solid var(--border);cursor:grab;transition:all 0.2s}
+.sortable-item.dragging{opacity:0.4}
+.sortable-item.drag-over{border-color:var(--rose);box-shadow:0 0 0 2px var(--rose)}
+.sortable-num{position:absolute;top:5px;left:5px;background:rgba(74,51,40,0.7);color:var(--blush);font-size:10px;padding:2px 7px;border-radius:2px;font-family:'Playfair Display',serif}
+.sortable-thumb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text4)}
+
+/* Video link cards (YouTube/Vimeo) */
+.video-link-card{display:flex;align-items:center;gap:0.85rem;padding:10px 12px;background:var(--white);border:1px solid var(--border);margin-bottom:6px}
+.video-link-ico{width:38px;height:38px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;color:white}
+.video-link-ico.youtube{background:#cc4444}
+.video-link-ico.vimeo{background:#3a6ea8}
+.video-link-title{font-size:12.5px;color:var(--text);flex:1;min-width:0}
+.video-link-meta{font-size:10.5px;color:var(--text3)}
+
+/* Access control toggles */
+.access-option{display:flex;align-items:flex-start;gap:0.85rem;padding:1rem;border:1px solid var(--border2);cursor:pointer;transition:all 0.2s;margin-bottom:0.6rem}
+.access-option:hover{border-color:var(--blush3)}
+.access-option.selected{border-color:var(--rose);background:rgba(184,117,88,0.05)}
+.access-radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border3);flex-shrink:0;margin-top:2px;position:relative}
+.access-option.selected .access-radio{border-color:var(--rose)}
+.access-option.selected .access-radio::after{content:'';position:absolute;inset:3px;background:var(--rose);border-radius:50%}
+.access-title{font-size:13px;font-weight:500;color:var(--mocha);margin-bottom:2px}
+.access-desc{font-size:11.5px;color:var(--text3);line-height:1.5}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-row-label{font-size:13px;color:var(--text2)}
+.toggle-row-sub{font-size:11px;color:var(--text4);margin-top:2px}
+.toggle{width:42px;height:23px;background:var(--cream3);border:1px solid var(--border2);border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0}
+.toggle.on{background:var(--rose);border-color:var(--rose)}
+.toggle-dot{position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--white);border-radius:50%;transition:transform 0.3s;box-shadow:0 1px 4px var(--shadow)}
+.toggle.on .toggle-dot{transform:translateX(19px)}
+
+/* ===== DRIVE CONNECT PANEL ===== */
+.step-box{background:var(--mocha2);padding:1.25rem;margin-bottom:1rem}
+.step-box-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold2);margin-bottom:0.9rem}
+.step-r{display:flex;gap:0.7rem;margin-bottom:0.75rem;align-items:flex-start}
+.step-r:last-child{margin-bottom:0}
+.step-c{width:22px;height:22px;border-radius:50%;background:rgba(232,185,152,0.12);border:1px solid rgba(232,185,152,0.25);display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--gold2);flex-shrink:0;font-family:'Playfair Display',serif}
+.step-t{font-size:12px;color:rgba(232,185,152,0.65);line-height:1.6}
+.step-t strong{color:var(--gold2)}
+.perm-list{background:var(--white);border:1px solid var(--border)}
+.perm-item{display:flex;gap:0.85rem;padding:0.85rem 1rem;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.55;align-items:flex-start}
+.perm-item:last-child{border-bottom:none}
+.perm-name{font-weight:500;color:var(--mocha);display:block;margin-bottom:2px}
+
+/* ===== ACTIVITY LOG (admin sees who viewed/liked/downloaded) ===== */
+.activity-log-item{display:flex;align-items:center;gap:0.85rem;padding:10px 0;border-bottom:1px solid var(--border)}
+.activity-log-item:last-child{border-bottom:none}
+.al-avatar{width:34px;height:34px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;color:var(--mocha);flex-shrink:0}
+.al-name{font-size:12.5px;color:var(--mocha);font-weight:500}
+.al-action{font-size:11.5px;color:var(--text3)}
+.al-time{font-size:10.5px;color:var(--text4);white-space:nowrap}
+.al-icon{font-size:13px}
+
+/* ===== MODALS ===== */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(74,51,40,0.5);align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--cream);max-width:520px;width:100%;padding:0;max-height:92vh;overflow-y:auto;animation:slideUp 0.3s ease}
+.modal-header{padding:1.3rem 1.5rem;background:var(--mocha2);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold2)}
+.modal-close{background:none;border:none;color:rgba(232,185,152,0.5);font-size:19px;cursor:pointer;flex-shrink:0}
+.modal-close:hover{color:var(--gold2)}
+.modal-body{padding:1.5rem}
+.client-link-box{background:var(--cream2);border:1px solid var(--border2);padding:12px 14px;display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem}
+.client-link-text{font-size:12.5px;color:var(--text2);flex:1;word-break:break-all;font-family:monospace;font-weight:300}
+.copy-btn{padding:7px 16px;background:var(--rose);border:none;color:var(--white);font-size:11.5px;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{background:var(--rose2)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .hero{grid-template-columns:1fr}
+  .hero-right{min-height:300px;order:-1}
+  .hero-left{padding-top:2.5rem}
+  .dashboard-wrap{grid-template-columns:190px 1fr}
+  .storage-diagram{grid-template-columns:1fr;gap:0.5rem}
+  .sd-arrow{transform:rotate(90deg)}
+}
+@media(max-width:860px){
+  .nav-center,.nav-right{display:none}
+  .hamburger{display:flex}
+  .flow-grid{grid-template-columns:1fr 1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .auth-wrap{grid-template-columns:1fr}
+  .auth-left{display:none}
+  .dashboard-wrap{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:0;top:var(--nav-h);bottom:0;width:240px;z-index:400;transform:translateX(-100%);transition:transform 0.3s ease;box-shadow:8px 0 24px rgba(0,0,0,0.08)}
+  .sidebar.open{transform:translateX(0)}
+  .mobile-sidebar-toggle{display:flex;align-items:center;gap:0.5rem;background:var(--white);border:1px solid var(--border2);padding:9px 16px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:1.25rem}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;top:var(--nav-h);background:rgba(0,0,0,0.3);z-index:390}
+  .sidebar-backdrop.open{display:block}
+  .preview-body{grid-template-columns:1fr}
+  .preview-side{display:none}
+}
+@media(max-width:540px){
+  .flow-grid,.stats-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .section{padding-left:1.1rem;padding-right:1.1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <button class="nav-logo" onclick="showPage('home')">Frame<em>Studio</em></button>
+  <div class="nav-center">
+    <button class="nav-link" id="nl-home" onclick="showPage('home')">Home</button>
+    <button class="nav-link" id="nl-howitworks" onclick="showPage('howitworks')">How it works</button>
+    <button class="nav-link" id="nl-pricing" onclick="showPage('pricing')">Pricing</button>
+  </div>
+  <div class="nav-right" id="navRight">
+    <button class="btn-ghost" onclick="showPage('auth')">Sign in</button>
+    <button class="btn-solid" onclick="showPage('auth')">Get started</button>
+  </div>
+  <div id="navRightLogged" style="display:none" class="nav-right">
+    <span id="userBadge" style="font-size:12px;color:var(--text2)"></span>
+    <button class="btn-ghost" onclick="showPage('dashboard')">My Studio</button>
+    <button class="icon-btn" onclick="doLogout()" title="Sign out" style="width:36px;height:36px;border:1px solid var(--border2);background:var(--white);border-radius:50%;cursor:pointer">⏻</button>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-drawer" id="mobileDrawer">
+  <button class="nav-link" onclick="showPage('home');toggleMobileMenu()">Home</button>
+  <button class="nav-link" onclick="showPage('howitworks');toggleMobileMenu()">How it works</button>
+  <button class="nav-link" onclick="showPage('pricing');toggleMobileMenu()">Pricing</button>
+  <div class="nav-right" id="mobNavRight">
+    <button class="btn-ghost" onclick="showPage('auth');toggleMobileMenu()">Sign in</button>
+    <button class="btn-solid" onclick="showPage('auth');toggleMobileMenu()">Get started</button>
+  </div>
+  <div class="nav-right" id="mobNavRightLogged" style="display:none">
+    <button class="btn-ghost" onclick="showPage('dashboard');toggleMobileMenu()">My Studio</button>
+    <button class="btn-solid" onclick="doLogout();toggleMobileMenu()">Sign out</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- HOME / SHOWCASE PAGE (for new visitors) -->
+<!-- ============================================================ -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="orb1 orb"></div>
+    <div class="hero-left">
+      <div class="hero-tag">Wedding gallery platform</div>
+      <h1 class="hero-title">Your gallery,<br><em>stored on your<br>own Drive.</em></h1>
+      <p class="hero-sub">Create a private gallery for every couple. Upload photos and films straight to your Google Drive — no extra storage, nothing else to pay for. Share one link, they see their wedding beautifully.</p>
+      <div class="hero-actions">
+        <button class="btn-rose" onclick="showPage('auth')">Create your studio — free</button>
+        <button class="btn-outline-rose" onclick="showPage('howitworks')">See how it works</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-mosaic">
+        <div class="mosaic-item"><div class="mosaic-bg m1">Ceremony</div><div class="mosaic-overlay"></div><div class="mosaic-label">Ceremony</div></div>
+        <div class="mosaic-item"><div class="mosaic-bg m2">Sangeet</div><div class="mosaic-overlay"></div><div class="mosaic-label">Sangeet</div></div>
+        <div class="mosaic-item"><div class="mosaic-bg m3">Reception</div><div class="mosaic-overlay"></div><div class="mosaic-label">Reception</div></div>
+        <div class="mosaic-item"><div class="mosaic-bg m4">Portraits</div><div class="mosaic-overlay"></div><div class="mosaic-label">Portraits</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats-strip">
+    <div class="stat-item reveal delay1"><div class="stat-num">2,400+</div><div class="stat-label">Galleries delivered</div></div>
+    <div class="stat-item reveal delay2"><div class="stat-num">840+</div><div class="stat-label">Studios using FrameStudio</div></div>
+    <div class="stat-item reveal delay3"><div class="stat-num">100%</div><div class="stat-label">Data stays on your Drive</div></div>
+    <div class="stat-item reveal delay4"><div class="stat-num">₹0</div><div class="stat-label">To get started</div></div>
+  </div>
+
+  <!-- 4-STEP FLOW -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-tag reveal">From sign up to delivery</div>
+      <h2 class="section-title reveal delay1">Four steps. <em>That's it.</em></h2>
+      <p class="section-sub reveal delay2">No complicated setup. Connect your Drive once, then every gallery just works.</p>
+      <div class="flow-grid">
+        <div class="flow-card reveal delay1"><div class="flow-num">01</div><div class="flow-icon">✍</div><div class="flow-title">Create your studio</div><div class="flow-text">Sign up free, or continue with Google in one tap.</div></div>
+        <div class="flow-card reveal delay2"><div class="flow-num">02</div><div class="flow-icon">🔗</div><div class="flow-title">Connect Google Drive</div><div class="flow-text">One-time approval. FrameStudio can now upload directly for you.</div></div>
+        <div class="flow-card reveal delay3"><div class="flow-num">03</div><div class="flow-icon">🖼</div><div class="flow-title">Create a gallery</div><div class="flow-text">A matching Drive folder is created automatically. Upload photos & films straight into it.</div></div>
+        <div class="flow-card reveal delay4"><div class="flow-num">04</div><div class="flow-icon">💌</div><div class="flow-title">Share the link</div><div class="flow-text">Your couple opens it, enters a password if set, and sees only their wedding.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCT PREVIEW MOCK -->
+  <section class="section" style="background:var(--warm)">
+    <div class="section-inner">
+      <div class="section-tag reveal">A look inside</div>
+      <h2 class="section-title reveal delay1">Your studio <em>dashboard</em></h2>
+      <p class="section-sub reveal delay2">Manage every couple's gallery, see who's viewed what, and upload new photos in seconds — all in one calm, organized place.</p>
+      <div class="preview-frame reveal delay3">
+        <div class="preview-topbar"><div class="preview-dot"></div><div class="preview-dot"></div><div class="preview-dot"></div><div class="preview-url">yourstudio.framestudio.app/dashboard</div></div>
+        <div class="preview-body">
+          <div class="preview-side">
+            <div class="preview-side-item active">◈ Overview</div>
+            <div class="preview-side-item">🖼 Galleries</div>
+            <div class="preview-side-item">☁ Drive Upload</div>
+            <div class="preview-side-item">🔗 Drive Connect</div>
+            <div class="preview-side-item">⚙ Studio Profile</div>
+          </div>
+          <div class="preview-main">
+            <div style="font-family:'Playfair Display',serif;font-size:19px;color:var(--mocha)">Good evening, <em style="font-style:italic;color:var(--rose)">Krunal</em></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:3px">3 galleries · Drive connected ✦</div>
+            <div class="preview-grid">
+              <div class="preview-thumb" style="background:linear-gradient(135deg,#e8d5c4,#c4a080)"></div>
+              <div class="preview-thumb" style="background:linear-gradient(135deg,#e0cdc0,#b89888)"></div>
+              <div class="preview-thumb" style="background:linear-gradient(135deg,#ead8cc,#c8a890)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORAGE EXPLAINER -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-tag reveal">Where your photos actually live</div>
+      <h2 class="section-title reveal delay1">Your Drive. <em>Nowhere else.</em></h2>
+      <p class="section-sub reveal delay2">FrameStudio never stores your photos on its own servers. Everything uploads straight to your connected Google Drive — you stay in full control.</p>
+      <div class="storage-diagram reveal delay3">
+        <div class="sd-box"><div class="sd-icon">📸</div><div class="sd-label">You upload</div><div class="sd-sub">Photos & films<br>from your device</div></div>
+        <div class="sd-arrow">→</div>
+        <div class="sd-box sd-highlight"><div class="sd-icon">📁</div><div class="sd-label">Google Drive</div><div class="sd-sub"><strong>Only storage used</strong><br>Your own account<br>Free 15 GB to start</div></div>
+        <div class="sd-arrow">→</div>
+        <div class="sd-box"><div class="sd-icon">💍</div><div class="sd-label">Couple views gallery</div><div class="sd-sub">Loads directly<br>from your Drive</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--cream2);padding:clamp(3rem,6vw,5rem) clamp(1.25rem,4vw,5rem);text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <div class="section-tag reveal" style="justify-content:center">Start today</div>
+    <h2 class="section-title reveal delay1" style="text-align:center;margin:0 auto 1.3rem">Your first gallery is <em>free</em></h2>
+    <div style="display:flex;gap:0.85rem;justify-content:center;flex-wrap:wrap" class="reveal delay2">
+      <button class="btn-rose" onclick="showPage('auth')">Create free studio</button>
+      <button class="btn-outline-rose" onclick="showPage('pricing')">View pricing</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-top">
+      <div><div class="footer-logo">Frame<em>Studio</em></div><p class="footer-desc">Wedding galleries that live on your own Google Drive. No extra storage, no confusion.</p></div>
+      <div><div class="footer-col-title">Platform</div><button class="footer-link" onclick="showPage('home')">Home</button><button class="footer-link" onclick="showPage('howitworks')">How it works</button><button class="footer-link" onclick="showPage('pricing')">Pricing</button></div>
+      <div><div class="footer-col-title">Account</div><button class="footer-link" onclick="showPage('auth')">Sign in</button><button class="footer-link" onclick="showPage('auth')">Sign up</button></div>
+      <div><div class="footer-col-title">Support</div><button class="footer-link">Help center</button><button class="footer-link">Privacy policy</button></div>
+    </div>
+    <div class="footer-bottom"><div class="footer-copy">© 2025 FrameStudio. All rights reserved.</div></div>
+  </footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- HOW IT WORKS PAGE -->
+<!-- ============================================================ -->
+<div id="page-howitworks" class="page">
+  <section class="hero" style="min-height:60vh;grid-template-columns:1fr">
+    <div class="hero-left" style="text-align:center;align-items:center;max-width:760px;margin:0 auto">
+      <div class="hero-tag" style="justify-content:center">The full picture</div>
+      <h1 class="hero-title" style="text-align:center">How <em>FrameStudio</em> works</h1>
+      <p class="hero-sub" style="margin:0 auto 2rem;text-align:center">From the moment you sign up to the moment your couple downloads their photos — here's exactly what happens.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-bottom:3rem;align-items:center">
+        <div class="reveal">
+          <div class="section-tag">For you, the studio</div>
+          <h2 class="section-title">Connect Drive <em>once</em></h2>
+          <p style="font-size:14px;color:var(--text2);line-height:1.8;font-weight:300">You approve a one-time Google permission. From then on, every gallery you create automatically gets its own folder in your Drive — named after the couple — and every photo you upload goes straight there.</p>
+        </div>
+        <div class="reveal delay1">
+          <div class="storage-diagram" style="margin-top:0;grid-template-columns:1fr;gap:0.5rem">
+            <div class="sd-box sd-highlight"><div class="sd-icon">📁</div><div class="sd-label">Drive/FrameStudio/Rohan & Priya</div><div class="sd-sub">Auto-created when gallery is made</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-bottom:3rem;align-items:center">
+        <div class="reveal delay1" style="order:2">
+          <div class="section-tag">Photos & films</div>
+          <h2 class="section-title">Upload anything, <em>play anywhere</em></h2>
+          <p style="font-size:14px;color:var(--text2);line-height:1.8;font-weight:300">Drag in photos and videos — they upload directly to Drive with a progress bar. Got a film on YouTube or Vimeo instead? Just paste the link — it plays right inside the gallery, no redirect.</p>
+        </div>
+        <div class="reveal" style="order:1">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <span style="font-size:11px;padding:6px 14px;background:var(--white);border:1px solid var(--border);color:var(--text2)">📸 JPG / PNG / RAW</span>
+            <span style="font-size:11px;padding:6px 14px;background:var(--white);border:1px solid var(--border);color:var(--text2)">🎬 MP4 / MOV</span>
+            <span style="font-size:11px;padding:6px 14px;background:var(--white);border:1px solid var(--border);color:var(--text2)">▶ YouTube link</span>
+            <span style="font-size:11px;padding:6px 14px;background:var(--white);border:1px solid var(--border);color:var(--text2)">▶ Vimeo link</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:center">
+        <div class="reveal">
+          <div class="section-tag">For the couple</div>
+          <h2 class="section-title">Just <em>view and download</em></h2>
+          <p style="font-size:14px;color:var(--text2);line-height:1.8;font-weight:300">No account needed. Your couple opens their link, enters the password if you set one, and lands straight in their gallery. They can like photos, download them, and share the link with family — all without signing up for anything.</p>
+        </div>
+        <div class="reveal delay1">
+          <div class="storage-diagram" style="margin-top:0;grid-template-columns:1fr;gap:0.5rem">
+            <div class="sd-box sd-highlight"><div class="sd-icon">💍</div><div class="sd-label">No sign up for clients</div><div class="sd-sub">Link + password (optional) → straight to gallery</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background:var(--cream2);padding:3rem clamp(1.25rem,4vw,5rem);text-align:center">
+    <button class="btn-rose" onclick="showPage('auth')">Start your free studio</button>
+  </section>
+  <footer style="background:var(--mocha2);padding:2rem clamp(1.25rem,4vw,5rem);text-align:center"><p style="font-size:12px;color:rgba(232,185,152,0.4)">FrameStudio</p></footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- PRICING PAGE -->
+<!-- ============================================================ -->
+<div id="page-pricing" class="page">
+  <section class="hero" style="min-height:40vh;grid-template-columns:1fr">
+    <div class="hero-left" style="text-align:center;align-items:center;max-width:700px;margin:0 auto">
+      <div class="hero-tag" style="justify-content:center">Simple pricing</div>
+      <h1 class="hero-title" style="text-align:center">Start free. <em>Scale when ready.</em></h1>
+    </div>
+  </section>
+  <section class="section">
+    <div class="section-inner" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;max-width:1000px;margin:0 auto">
+      <div style="background:var(--white);border:1px solid var(--border);padding:1.9rem">
+        <div style="font-size:10.5px;letter-spacing:0.25em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem">Starter</div>
+        <div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--mocha)">₹0</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:1.2rem">forever free</div>
+        <div style="height:1px;background:var(--border);margin-bottom:1.2rem"></div>
+        <p style="font-size:12.5px;color:var(--text2);line-height:2">✦ 3 galleries<br>✦ Drive connect & upload<br>✦ YouTube + Vimeo embeds<br>✦ Password protection</p>
+        <button class="btn-outline-rose" style="width:100%;margin-top:1.3rem" onclick="showPage('auth')">Get started</button>
+      </div>
+      <div style="background:var(--mocha);border:1px solid var(--mocha);padding:1.9rem;color:var(--blush)">
+        <div style="font-size:10.5px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(232,185,152,0.5);margin-bottom:0.5rem">Basic</div>
+        <div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--gold2)">₹499</div>
+        <div style="font-size:12px;color:rgba(232,185,152,0.4);margin-bottom:1.2rem">per month</div>
+        <div style="height:1px;background:rgba(232,185,152,0.15);margin-bottom:1.2rem"></div>
+        <p style="font-size:12.5px;color:rgba(240,220,200,0.85);line-height:2">✦ Unlimited galleries<br>✦ AI face search<br>✦ Client activity log<br>✦ Custom branding</p>
+        <button class="btn-rose" style="width:100%;margin-top:1.3rem" onclick="showPage('auth')">Start Basic</button>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);padding:1.9rem">
+        <div style="font-size:10.5px;letter-spacing:0.25em;text-transform:uppercase;color:var(--text3);margin-bottom:0.5rem">Pro</div>
+        <div style="font-family:'Playfair Display',serif;font-size:40px;color:var(--mocha)">₹999</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:1.2rem">per month</div>
+        <div style="height:1px;background:var(--border);margin-bottom:1.2rem"></div>
+        <p style="font-size:12.5px;color:var(--text2);line-height:2">✦ Everything in Basic<br>✦ White-label<br>✦ 5 team seats<br>✦ Priority support</p>
+        <button class="btn-outline-rose" style="width:100%;margin-top:1.3rem" onclick="showPage('auth')">Start Pro</button>
+      </div>
+    </div>
+  </section>
+  <footer style="background:var(--mocha2);padding:2rem clamp(1.25rem,4vw,5rem);text-align:center"><p style="font-size:12px;color:rgba(232,185,152,0.4)">FrameStudio</p></footer>
+</div>
+
+<!-- ============================================================ -->
+<!-- AUTH PAGE -->
+<!-- ============================================================ -->
+<div id="page-auth" class="page">
+  <div class="auth-wrap">
+    <div class="auth-left">
+      <div class="auth-left-orb"></div>
+      <div class="auth-left-content">
+        <div class="auth-left-logo">Frame<em>Studio</em></div>
+        <p class="auth-left-sub">Wedding galleries stored on your own Google Drive.</p>
+        <div>
+          <div class="auth-left-feature"><div class="auth-left-feature-dot"></div>Connect Drive once, upload forever</div>
+          <div class="auth-left-feature"><div class="auth-left-feature-dot"></div>YouTube & Vimeo film embeds</div>
+          <div class="auth-left-feature"><div class="auth-left-feature-dot"></div>Clients need no account</div>
+          <div class="auth-left-feature"><div class="auth-left-feature-dot"></div>Free forever plan available</div>
+        </div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-box">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="atab-signin" onclick="switchAuthTab('signin')">Sign in</button>
+          <button class="auth-tab" id="atab-signup" onclick="switchAuthTab('signup')">Create account</button>
+        </div>
+        <div id="auth-signin">
+          <h2 class="auth-box-title">Welcome back</h2>
+          <p class="auth-box-sub">Sign in to your studio</p>
+          <button class="google-btn" onclick="doGoogleAuth('signin')">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5.4l-6.5-5.4C29.4 35 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C41.5 35.8 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+            Continue with Google
+          </button>
+          <div class="divider-or">or sign in with email</div>
+          <div class="form-row"><label class="form-label">Email address</label><input class="form-input" type="email" placeholder="you@yourstudio.com" id="si-email"><span class="form-error-msg" id="si-email-err">Please enter a valid email</span></div>
+          <div class="form-row"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="••••••••" id="si-pass"><span class="form-error-msg" id="si-pass-err">Password is required</span></div>
+          <button class="form-submit" onclick="doLogin('signin')" id="signinBtn">Sign in to studio</button>
+          <p class="form-note">Don't have an account? <a onclick="switchAuthTab('signup')">Create one →</a></p>
+        </div>
+        <div id="auth-signup" style="display:none">
+          <h2 class="auth-box-title">Create your studio</h2>
+          <p class="auth-box-sub">Start delivering beautiful galleries today</p>
+          <button class="google-btn" onclick="doGoogleAuth('signup')">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5.4l-6.5-5.4C29.4 35 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C41.5 35.8 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+            Sign up with Google
+          </button>
+          <div class="divider-or">or sign up with email</div>
+          <div class="form-grid">
+            <div class="form-row"><label class="form-label">Studio name</label><input class="form-input" type="text" placeholder="KrunalFilms" id="su-studio"></div>
+            <div class="form-row"><label class="form-label">Your name</label><input class="form-input" type="text" placeholder="Krunal" id="su-name"></div>
+          </div>
+          <div class="form-row"><label class="form-label">Email address</label><input class="form-input" type="email" placeholder="you@yourstudio.com" id="su-email"><span class="form-error-msg" id="su-email-err">Please enter a valid email</span></div>
+          <div class="form-row"><label class="form-label">Create password</label><input class="form-input" type="password" placeholder="Min. 8 characters" id="su-pass"></div>
+          <button class="form-submit" onclick="doLogin('signup')" id="signupBtn">Create my studio</button>
+          <p class="form-note">Already have an account? <a onclick="switchAuthTab('signin')">Sign in →</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ONBOARDING: CONNECT DRIVE (shown once after first signup) -->
+<!-- ============================================================ -->
+<div id="page-onboard" class="page">
+  <div class="onboard-wrap">
+    <div class="onboard-box">
+      <div class="onboard-steps">
+        <div class="ob-dot done"></div><div class="ob-dot active"></div><div class="ob-dot"></div>
+      </div>
+      <div class="onboard-icon">🔗</div>
+      <h2 class="onboard-title">Connect your <em>Google Drive</em></h2>
+      <p class="onboard-text">FrameStudio uploads your photos and videos straight to your own Drive — no other storage is used. This is a one-time setup. You can always change it later in Settings.</p>
+      <div class="onboard-perm-list">
+        <div class="onboard-perm"><span style="flex-shrink:0">✅</span><span><strong style="color:var(--mocha)">drive.file</strong> — create and manage only the files FrameStudio uploads</span></div>
+        <div class="onboard-perm"><span style="flex-shrink:0">✅</span><span><strong style="color:var(--mocha)">Your email</strong> — to label the connected account</span></div>
+        <div class="onboard-perm"><span style="flex-shrink:0">❌</span><span><strong style="color:var(--mocha)">Full Drive access</strong> — never requested. Your other files stay private</span></div>
+      </div>
+      <button class="google-btn" onclick="onboardConnectDrive()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5.4l-6.5-5.4C29.4 35 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C41.5 35.8 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+        Connect Google Drive
+      </button>
+      <p class="form-note" style="margin-top:1rem"><a onclick="skipOnboard()">Skip for now — connect later →</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DASHBOARD -->
+<!-- ============================================================ -->
+<div id="page-dashboard" class="page">
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+  <div class="dashboard-wrap">
+    <aside class="sidebar" id="dashSidebar">
+      <div class="drive-pill disconnected" id="drivePillSidebar"><div class="drive-pill-dot"></div><span id="drivePillText">Drive not connected</span></div>
+      <div class="sidebar-section-label">Studio</div>
+      <button class="sidebar-item active" onclick="switchDash('overview',this)"><span class="sidebar-icon">◈</span>Overview</button>
+      <button class="sidebar-item" onclick="switchDash('galleries',this)"><span class="sidebar-icon">🖼</span>Galleries</button>
+      <div class="sidebar-section-label">Settings</div>
+      <button class="sidebar-item" onclick="switchDash('drive',this)"><span class="sidebar-icon">🔗</span>Drive connection</button>
+      <button class="sidebar-item" onclick="switchDash('profile',this)"><span class="sidebar-icon">⚙</span>Studio profile</button>
+      <button class="sidebar-item" onclick="showPage('pricing')"><span class="sidebar-icon">★</span>Subscription</button>
+      <button class="sidebar-item" onclick="doLogout()"><span class="sidebar-icon">→</span>Sign out</button>
+    </aside>
+
+    <main class="dash-main">
+      <button class="mobile-sidebar-toggle" onclick="toggleSidebar()">☰ Studio menu</button>
+
+      <!-- OVERVIEW -->
+      <div class="dash-tab-panel active" id="dash-overview">
+        <div class="dash-header">
+          <h1 class="dash-greeting">Good evening, <em id="dashUserName">Krunal</em></h1>
+          <p class="dash-sub">Here's what's happening in your studio today.</p>
+        </div>
+        <div id="overviewDriveWarn" class="info-strip" style="display:none">⚠ <strong>Connect Google Drive</strong> to start creating galleries and uploading photos. <a onclick="switchDash('drive',null)" style="color:var(--rose);cursor:pointer">Connect now →</a></div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-big" id="statGalleries">0</div><div class="stat-lbl">Galleries</div></div>
+          <div class="stat-card"><div class="stat-big" id="statPhotos">0</div><div class="stat-lbl">Photos on Drive</div></div>
+          <div class="stat-card"><div class="stat-big" id="statViews">0</div><div class="stat-lbl">Gallery views</div></div>
+          <div class="stat-card"><div class="stat-big" id="statDownloads">0</div><div class="stat-lbl">Downloads</div></div>
+        </div>
+        <div class="dash-card" style="max-width:920px;margin-bottom:1.2rem">
+          <div class="dash-card-hdr"><span class="dash-card-ttl">Recent galleries</span><button class="dash-card-action" onclick="switchDash('galleries',null)">View all →</button></div>
+          <div id="overviewGalleryList"><div style="text-align:center;padding:1.5rem;color:var(--text4);font-size:13px">No galleries yet — create your first one.</div></div>
+        </div>
+        <div class="dash-card" style="max-width:920px">
+          <div class="dash-card-hdr"><span class="dash-card-ttl">Client activity — who saw, liked & downloaded</span></div>
+          <div id="overviewActivity"><div style="text-align:center;padding:1.5rem;color:var(--text4);font-size:13px">No client activity yet.</div></div>
+        </div>
+      </div>
+
+      <!-- GALLERIES LIST -->
+      <div class="dash-tab-panel" id="dash-galleries">
+        <div class="dash-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h1 class="dash-greeting">Your <em>Galleries</em></h1>
+            <p class="dash-sub">Each gallery has its own Drive folder, password, and share link.</p>
+          </div>
+          <button class="btn-rose" onclick="openNewGalleryModal()">+ Create gallery</button>
+        </div>
+        <div id="galleriesDriveWarn" class="info-strip" style="display:none">⚠ Connect Google Drive before creating a gallery. <a onclick="switchDash('drive',null)" style="color:var(--rose);cursor:pointer">Connect now →</a></div>
+        <div class="gallery-cards-grid" id="galleryCardsGrid">
+          <div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">◈</div>No galleries yet. Create your first one.</div>
+        </div>
+      </div>
+
+      <!-- GALLERY EDITOR (opens when a gallery card is clicked) -->
+      <div class="dash-tab-panel" id="dash-editor">
+        <div class="dash-header">
+          <button class="dash-card-action" onclick="switchDash('galleries',null)" style="margin-bottom:0.6rem">← Back to galleries</button>
+          <h1 class="dash-greeting" id="editorGalleryName">Gallery name</h1>
+          <p class="dash-sub" id="editorGalleryMeta">Drive folder · 0 photos</p>
+        </div>
+        <div class="editor-tabs">
+          <button class="editor-tab active" onclick="switchEditorTab('details',this)">Details</button>
+          <button class="editor-tab" onclick="switchEditorTab('upload',this)">Upload media</button>
+          <button class="editor-tab" onclick="switchEditorTab('arrange',this)">Arrange photos</button>
+          <button class="editor-tab" onclick="switchEditorTab('films',this)">Films</button>
+          <button class="editor-tab" onclick="switchEditorTab('access',this)">Access & sharing</button>
+          <button class="editor-tab" onclick="switchEditorTab('activity',this)">Activity</button>
+        </div>
+
+        <!-- DETAILS -->
+        <div class="editor-panel active" id="editor-details">
+          <div class="dash-card" style="max-width:640px">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Gallery details</span></div>
+            <div class="form-grid">
+              <div class="form-row"><label class="form-label">Bride's name</label><input class="form-input" id="ed-bride"></div>
+              <div class="form-row"><label class="form-label">Groom's name</label><input class="form-input" id="ed-groom"></div>
+            </div>
+            <div class="form-grid">
+              <div class="form-row"><label class="form-label">Wedding date</label><input class="form-input" type="date" id="ed-date"></div>
+              <div class="form-row"><label class="form-label">Location</label><input class="form-input" id="ed-location"></div>
+            </div>
+            <div class="form-row"><label class="form-label">Gallery tagline</label><input class="form-input" id="ed-title" placeholder="A Udaipur Love Story"></div>
+            <div class="form-row"><label class="form-label">Cover photo</label>
+              <div class="upload-zone" style="padding:1.5rem" onclick="document.getElementById('ed-cover-input').click()">
+                <input type="file" id="ed-cover-input" accept="image/*" style="display:none" onchange="edSetCover(this)">
+                <div id="edCoverPreview" style="font-size:24px;color:var(--blush3)">🖼 Click to set cover photo</div>
+              </div>
+            </div>
+            <button class="btn-rose" style="padding:10px 26px;font-size:11.5px" onclick="edSaveDetails()">Save details</button>
+          </div>
+        </div>
+
+        <!-- UPLOAD -->
+        <div class="editor-panel" id="editor-upload">
+          <div class="dash-card" style="max-width:640px;margin-bottom:1rem">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Upload to Drive folder</span></div>
+            <div id="edDropZone" style="border:2px dashed var(--border2);padding:2.2rem 1.25rem;text-align:center;cursor:pointer" onclick="document.getElementById('edFileInput').click()">
+              <input type="file" id="edFileInput" multiple accept="image/*,video/*" style="display:none" onchange="edFilesSelected(this.files)">
+              <div class="upload-zone-icon">☁</div>
+              <div style="font-size:14px;color:var(--text2);margin-bottom:0.35rem">Drop photos & videos or click to browse</div>
+              <div style="font-size:11.5px;color:var(--text4)">Uploads directly to this gallery's Drive folder</div>
+            </div>
+            <div id="edFileQueue" style="margin-top:0.85rem"></div>
+          </div>
+          <div class="dash-card" style="max-width:640px">
+            <div class="op-wrap" id="edOpWrap">
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem"><span style="font-size:13px;color:var(--mocha)">Uploading...</span><span id="edPct" style="font-family:'Playfair Display',serif;color:var(--rose)">0%</span></div>
+              <div class="op-bar"><div class="op-bar-fill" id="edBarFill"></div></div>
+              <div style="font-size:11.5px;color:var(--text3)"><span id="edDone">0</span>/<span id="edTotal">0</span> files uploaded</div>
+            </div>
+            <button class="btn-rose" id="edStartBtn" onclick="edStartUpload()" disabled style="padding:10px 26px;font-size:12px">☁ Upload all to Drive</button>
+            <span id="edDoneMsg" style="display:none;font-size:12.5px;color:var(--success);margin-left:0.75rem">✦ Uploaded!</span>
+          </div>
+        </div>
+
+        <!-- ARRANGE PHOTOS (drag to reorder) -->
+        <div class="editor-panel" id="editor-arrange">
+          <div class="dash-card" style="max-width:920px">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Drag photos to set their order</span><span style="font-size:11px;color:var(--text4)">First photo shows first in the gallery</span></div>
+            <div class="sortable-grid" id="sortableGrid"></div>
+          </div>
+        </div>
+
+        <!-- FILMS (YouTube / Vimeo) -->
+        <div class="editor-panel" id="editor-films">
+          <div class="dash-card" style="max-width:640px">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Add a film link</span></div>
+            <p style="font-size:12.5px;color:var(--text2);margin-bottom:1rem;font-weight:300">Paste a YouTube or Vimeo link — it plays directly inside the gallery.</p>
+            <div class="url-row"><input class="url-field" placeholder="https://youtube.com/watch?v=... or vimeo.com/..." id="ed-video-url"><button class="url-btn" onclick="edAddVideo()">Add film</button></div>
+            <div id="edVideoList"></div>
+          </div>
+        </div>
+
+        <!-- ACCESS & SHARING -->
+        <div class="editor-panel" id="editor-access">
+          <div class="dash-card" style="max-width:640px;margin-bottom:1rem">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Who can view this gallery</span></div>
+            <div class="access-option selected" onclick="edSetAccess('password',this)">
+              <div class="access-radio"></div>
+              <div><div class="access-title">🔑 Password protected</div><div class="access-desc">Anyone with the link must enter a password to view</div></div>
+            </div>
+            <div class="access-option" onclick="edSetAccess('unlisted',this)">
+              <div class="access-radio"></div>
+              <div><div class="access-title">🔓 Unlisted</div><div class="access-desc">Anyone with the link can view, no password needed</div></div>
+            </div>
+            <div class="access-option" onclick="edSetAccess('public',this)">
+              <div class="access-radio"></div>
+              <div><div class="access-title">🌐 Public</div><div class="access-desc">Visible to anyone, may appear in search</div></div>
+            </div>
+            <div class="access-option" onclick="edSetAccess('draft',this)">
+              <div class="access-radio"></div>
+              <div><div class="access-title">🔒 Private draft</div><div class="access-desc">Only you can see it — not shared yet</div></div>
+            </div>
+            <div class="form-row" style="margin-top:1rem" id="edPasswordRow">
+              <label class="form-label">Gallery password</label>
+              <input class="form-input" id="ed-password" placeholder="e.g. rohanpriya2025">
+            </div>
+          </div>
+          <div class="dash-card" style="max-width:640px;margin-bottom:1rem">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Client permissions</span></div>
+            <div class="toggle-row"><div><div class="toggle-row-label">Allow photo downloads</div><div class="toggle-row-sub">Clients can save individual photos</div></div><div class="toggle on" id="tg-download" onclick="edToggle(this)"><div class="toggle-dot"></div></div></div>
+            <div class="toggle-row"><div><div class="toggle-row-label">Allow "download all" (ZIP)</div><div class="toggle-row-sub">Bulk download from Drive</div></div><div class="toggle on" id="tg-downloadall" onclick="edToggle(this)"><div class="toggle-dot"></div></div></div>
+            <div class="toggle-row"><div><div class="toggle-row-label">Allow likes</div><div class="toggle-row-sub">Clients can heart their favourite photos</div></div><div class="toggle on" id="tg-likes" onclick="edToggle(this)"><div class="toggle-dot"></div></div></div>
+            <div class="toggle-row"><div><div class="toggle-row-label">Allow sharing</div><div class="toggle-row-sub">Clients can share the gallery link further</div></div><div class="toggle on" id="tg-share" onclick="edToggle(this)"><div class="toggle-dot"></div></div></div>
+            <div class="toggle-row"><div><div class="toggle-row-label">Require name & email before viewing</div><div class="toggle-row-sub">Know exactly who's viewing your gallery</div></div><div class="toggle on" id="tg-requireinfo" onclick="edToggle(this)"><div class="toggle-dot"></div></div></div>
+          </div>
+          <button class="btn-rose" style="padding:10px 26px;font-size:12px" onclick="edSaveAccess()">Save & publish</button>
+          <button class="btn-outline-rose" style="padding:10px 26px;font-size:12px" onclick="openShareModal()">⤴ Get share link</button>
+        </div>
+
+        <!-- ACTIVITY (who viewed/liked/downloaded) -->
+        <div class="editor-panel" id="editor-activity">
+          <div class="dash-card" style="max-width:680px">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Who's seen this gallery</span></div>
+            <div id="edActivityList"><div style="text-align:center;padding:2rem;color:var(--text4);font-size:13px">No views yet — once you share the link, activity appears here.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DRIVE CONNECTION PANEL -->
+      <div class="dash-tab-panel" id="dash-drive">
+        <div class="dash-header"><h1 class="dash-greeting">Google Drive <em>Connection</em></h1><p class="dash-sub">Photos and videos you upload go directly here — nowhere else.</p></div>
+        <div id="driveNotConnectedPanel">
+          <div class="step-box">
+            <div class="step-box-title">How it works</div>
+            <div class="step-r"><div class="step-c">1</div><div class="step-t">Connect your Google account — a permission screen appears.</div></div>
+            <div class="step-r"><div class="step-c">2</div><div class="step-t">Approve it. FrameStudio gets a secure token, <strong>never your password.</strong></div></div>
+            <div class="step-r"><div class="step-c">3</div><div class="step-t">Each gallery you create makes a matching folder in your Drive automatically.</div></div>
+          </div>
+          <div class="dash-card" style="max-width:600px">
+            <div class="dash-card-hdr"><span class="dash-card-ttl">Permissions requested</span></div>
+            <div class="perm-list">
+              <div class="perm-item"><span>✅</span><div><span class="perm-name">drive.file</span>Create & manage only files FrameStudio uploads</div></div>
+              <div class="perm-item"><span>❌</span><div><span class="perm-name">Full Drive access — not requested</span></div></div>
+            </div>
+            <button class="google-btn" style="margin-top:1.25rem" onclick="dcConnect()">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.9 18.9 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.5 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.3-1.8 14-5.4l-6.5-5.4C29.4 35 26.8 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.4C41.5 35.8 44 30.4 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+              Connect Google Drive
+            </button>
+          </div>
+        </div>
+        <div id="driveConnectedPanel" style="display:none">
+          <div class="ok-strip" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+            <span style="font-size:20px">✅</span>
+            <div><div style="font-weight:500;color:var(--mocha)">Google Drive connected</div><div id="dcEmailText" style="font-size:12px;color:var(--text3)">—</div></div>
+            <button class="btn-outline-rose" style="margin-left:auto;padding:7px 16px;font-size:11px" onclick="dcDisconnect()">Disconnect</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDIO PROFILE -->
+      <div class="dash-tab-panel" id="dash-profile">
+        <div class="dash-header"><h1 class="dash-greeting">Studio <em>Profile</em></h1><p class="dash-sub">This appears on every gallery you share with clients.</p></div>
+        <div class="dash-card" style="max-width:560px">
+          <div class="dash-card-hdr"><span class="dash-card-ttl">Studio information</span></div>
+          <div class="form-row"><label class="form-label">Studio logo</label>
+            <div class="upload-zone" style="padding:1.25rem" onclick="document.getElementById('logoInput').click()">
+              <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="setLogo(this)">
+              <div id="logoPreview" style="font-size:22px;color:var(--blush3)">🏷 Click to upload logo</div>
+            </div>
+          </div>
+          <div class="form-row"><label class="form-label">Studio name</label><input class="form-input" id="profileStudioName" value="KrunalFilms"></div>
+          <div class="form-row"><label class="form-label">Contact number</label><input class="form-input" id="profilePhone" placeholder="+91 98765 43210"></div>
+          <div class="form-row"><label class="form-label">Contact email</label><input class="form-input" id="profileEmail" placeholder="hello@krunalfilms.in"></div>
+          <div class="form-row"><label class="form-label">About your studio</label><textarea class="form-input" id="profileAbout" style="min-height:80px" placeholder="A few words clients will see on their gallery..."></textarea></div>
+          <button class="btn-rose" style="padding:10px 26px;font-size:11.5px" onclick="showToast('Studio profile saved','success')">Save profile</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- NEW GALLERY MODAL -->
+<div class="modal-overlay" id="newGalleryModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">Create new gallery</div><button class="modal-close" onclick="closeModal('newGalleryModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row"><label class="form-label">Bride's name</label><input class="form-input" id="ng-bride" placeholder="Priya"></div>
+        <div class="form-row"><label class="form-label">Groom's name</label><input class="form-input" id="ng-groom" placeholder="Rohan"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label class="form-label">Wedding date</label><input class="form-input" type="date" id="ng-date"></div>
+        <div class="form-row"><label class="form-label">Location</label><input class="form-input" id="ng-location" placeholder="Udaipur, Rajasthan"></div>
+      </div>
+      <div class="info-strip">A Drive folder named after the couple will be created automatically inside your FrameStudio root folder.</div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn-outline-rose" onclick="closeModal('newGalleryModal')">Cancel</button>
+        <button class="btn-rose" onclick="createGallery()">Create gallery + Drive folder</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title" id="shareModalTitle">Share gallery</div><button class="modal-close" onclick="closeModal('shareModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="form-label">Client gallery link</label>
+        <div class="client-link-box"><div class="client-link-text" id="shareLinkText"></div><button class="copy-btn" onclick="copyShareLink()">Copy</button></div>
+      </div>
+      <div class="form-row" id="sharePasswordRow"><label class="form-label">Password</label>
+        <div class="client-link-box"><div class="client-link-text" id="sharePasswordText" style="font-size:16px;letter-spacing:0.15em"></div><button class="copy-btn" onclick="copyPassword()">Copy</button></div>
+      </div>
+      <div class="info-strip">No sign up needed — your couple opens this link and goes straight into their gallery.</div>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+        <button class="btn-rose" onclick="shareWhatsApp()">📱 Share on WhatsApp</button>
+        <button class="btn-outline-rose" onclick="shareEmail()">✉ Send by email</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ STATE ============
+let currentPage='home';
+let isLoggedIn=false;
+let currentUser=null;
+let driveConnected=false;
+let driveEmail='';
+let galleries=[];
+let activeGalleryId=null;
+let edFiles=[];
+let edAccessType='password';
+
+function showToast(msg,type){
+  type=type||'info';
+  const wrap=document.getElementById('toastWrap');
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  const icon=type==='success'?'✦':type==='error'?'⚠':'ℹ';
+  t.innerHTML='<span style="font-size:14px;flex-shrink:0">'+icon+'</span><span>'+msg+'</span>';
+  wrap.appendChild(t);
+  setTimeout(()=>{t.style.transition='all 0.3s';t.style.opacity='0';t.style.transform='translateX(40px)';setTimeout(()=>t.remove(),300)},3200);
+}
+
+window.addEventListener('scroll',()=>{document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>30)});
+
+function toggleMobileMenu(){
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobileDrawer').classList.toggle('open');
+}
+
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target=document.getElementById('page-'+page);
+  if(!target)return;
+  if(page==='dashboard'&&!isLoggedIn){showPage('auth');showToast('Please sign in to access your studio','error');return}
+  target.classList.add('active');
+  currentPage=page;
+  window.scrollTo({top:0,behavior:'instant'});
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active-nav'));
+  const nl=document.getElementById('nl-'+page);
+  if(nl)nl.classList.add('active-nav');
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  setTimeout(initReveal,80);
+}
+
+function initReveal(){
+  const els=document.querySelectorAll('#page-'+currentPage+' .reveal');
+  const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.1});
+  els.forEach(el=>obs.observe(el));
+  setTimeout(()=>els.forEach(el=>{const r=el.getBoundingClientRect();if(r.top<window.innerHeight)el.classList.add('visible')}),60);
+}
+initReveal();
+
+function isValidEmail(v){return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)}
+function showFieldError(inputId,errId,show){
+  const inp=document.getElementById(inputId),err=document.getElementById(errId);
+  if(inp)inp.classList.toggle('error',show);
+  if(err)err.style.display=show?'block':'none';
+}
+
+// ============ AUTH ============
+function switchAuthTab(tab){
+  document.getElementById('atab-signin').classList.toggle('active',tab==='signin');
+  document.getElementById('atab-signup').classList.toggle('active',tab==='signup');
+  document.getElementById('auth-signin').style.display=tab==='signin'?'block':'none';
+  document.getElementById('auth-signup').style.display=tab==='signup'?'block':'none';
+}
+
+function doGoogleAuth(mode){
+  showToast('Connecting to Google...','info');
+  setTimeout(()=>{
+    completeLogin('Krunal Prajapati','KrunalFilms','krunal.g@gmail.com', mode==='signup');
+    showToast('Signed in with Google ✦','success');
+  },800);
+}
+
+function doLogin(mode){
+  if(mode==='signin'){
+    const email=document.getElementById('si-email').value;
+    const pass=document.getElementById('si-pass').value;
+    let valid=true;
+    if(!isValidEmail(email)){showFieldError('si-email','si-email-err',true);valid=false}else{showFieldError('si-email','si-email-err',false)}
+    if(!pass){showFieldError('si-pass','si-pass-err',true);valid=false}else{showFieldError('si-pass','si-pass-err',false)}
+    if(!valid){showToast('Please fix the errors below','error');return}
+    const btn=document.getElementById('signinBtn');
+    btn.textContent='Signing in...';btn.disabled=true;
+    setTimeout(()=>{
+      btn.textContent='Sign in to studio';btn.disabled=false;
+      completeLogin(email.split('@')[0],'My Studio',email,false);
+      showToast('Welcome back ✦','success');
+    },700);
+  } else {
+    const studio=document.getElementById('su-studio').value||'My Studio';
+    const name=document.getElementById('su-name').value||'Studio Owner';
+    const email=document.getElementById('su-email').value;
+    if(!isValidEmail(email)){showFieldError('su-email','su-email-err',true);showToast('Please enter a valid email','error');return}
+    showFieldError('su-email','su-email-err',false);
+    const btn=document.getElementById('signupBtn');
+    btn.textContent='Creating studio...';btn.disabled=true;
+    setTimeout(()=>{
+      btn.textContent='Create my studio';btn.disabled=false;
+      completeLogin(name,studio,email,true);
+      showToast('Studio created ✦','success');
+    },800);
+  }
+}
+
+function completeLogin(name,studio,email,isNewUser){
+  isLoggedIn=true;
+  currentUser={name,studio,email};
+  document.getElementById('navRight').style.display='none';
+  document.getElementById('navRightLogged').style.display='flex';
+  document.getElementById('userBadge').textContent=studio;
+  document.getElementById('mobNavRight').style.display='none';
+  document.getElementById('mobNavRightLogged').style.display='flex';
+  document.getElementById('dashUserName').textContent=name.split(' ')[0];
+  document.getElementById('profileStudioName').value=studio;
+  document.getElementById('profileEmail').value=email;
+  renderOverview();
+  renderGalleryCards();
+  if(isNewUser && !driveConnected){
+    showPage('onboard');
+  } else {
+    showPage('dashboard');
+  }
+}
+
+function doLogout(){
+  isLoggedIn=false;
+  currentUser=null;
+  document.getElementById('navRight').style.display='flex';
+  document.getElementById('navRightLogged').style.display='none';
+  document.getElementById('mobNavRight').style.display='flex';
+  document.getElementById('mobNavRightLogged').style.display='none';
+  showPage('home');
+  showToast('Signed out successfully','info');
+}
+
+// ============ ONBOARDING ============
+function onboardConnectDrive(){
+  showToast('Connecting to Google Drive...','info');
+  setTimeout(()=>{
+    driveConnected=true;
+    driveEmail=currentUser?currentUser.email:'studio@gmail.com';
+    updateDriveUI();
+    showToast('Google Drive connected ✦','success');
+    showPage('dashboard');
+  },1100);
+}
+function skipOnboard(){
+  showPage('dashboard');
+  showToast('You can connect Drive anytime from Settings','info');
+}
+
+// ============ DRIVE CONNECT (in-dashboard) ============
+function dcConnect(){
+  showToast('Connecting to Google Drive...','info');
+  setTimeout(()=>{
+    driveConnected=true;
+    driveEmail=currentUser?currentUser.email:'studio@gmail.com';
+    updateDriveUI();
+    showToast('Google Drive connected ✦','success');
+  },1100);
+}
+function dcDisconnect(){
+  driveConnected=false;
+  updateDriveUI();
+  showToast('Google Drive disconnected','info');
+}
+function updateDriveUI(){
+  const pill=document.getElementById('drivePillSidebar');
+  const pillText=document.getElementById('drivePillText');
+  if(driveConnected){
+    pill.className='drive-pill connected';
+    pillText.textContent='Drive connected';
+    document.getElementById('driveNotConnectedPanel').style.display='none';
+    document.getElementById('driveConnectedPanel').style.display='block';
+    document.getElementById('dcEmailText').textContent='Connected as: '+driveEmail;
+    document.getElementById('overviewDriveWarn').style.display='none';
+    document.getElementById('galleriesDriveWarn').style.display='none';
+  } else {
+    pill.className='drive-pill disconnected';
+    pillText.textContent='Drive not connected';
+    document.getElementById('driveNotConnectedPanel').style.display='block';
+    document.getElementById('driveConnectedPanel').style.display='none';
+    document.getElementById('overviewDriveWarn').style.display=isLoggedIn?'block':'none';
+    document.getElementById('galleriesDriveWarn').style.display=isLoggedIn?'block':'none';
+  }
+}
+
+// ============ DASHBOARD NAV ============
+function switchDash(tab,btn){
+  document.querySelectorAll('.dash-tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('dash-'+tab).classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('dashSidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+  if(tab==='galleries') renderGalleryCards();
+  if(tab==='overview') renderOverview();
+  setTimeout(initReveal,80);
+}
+function toggleSidebar(){
+  document.getElementById('dashSidebar').classList.toggle('open');
+  document.getElementById('sidebarBackdrop').classList.toggle('open');
+}
+
+// ============ GALLERY CRUD ============
+function openNewGalleryModal(){
+  if(!driveConnected){ showToast('Connect Google Drive first','error'); switchDash('drive',null); return; }
+  document.getElementById('newGalleryModal').classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function createGallery(){
+  const bride=document.getElementById('ng-bride').value.trim();
+  const groom=document.getElementById('ng-groom').value.trim();
+  const date=document.getElementById('ng-date').value;
+  const location=document.getElementById('ng-location').value.trim();
+  if(!bride||!groom){ showToast('Please enter both names','error'); return; }
+  const id=(bride+'-'+groom+'-'+Date.now()).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const coupleNames=bride+' & '+groom;
+  const folderName=coupleNames+' — '+(date||'Wedding');
+  const gallery={
+    id,bride,groom,coupleNames,date,location,
+    title:coupleNames+' Wedding',folderName,
+    coverGradient:'linear-gradient(135deg,#e8d5c4,#c4a080)',
+    access:'password',password:Math.random().toString(36).slice(2,8),
+    photoCount:0,videoCount:0,viewCount:0,downloadCount:0,
+    photos:[],videos:[],activity:[],
+    permissions:{download:true,downloadall:true,likes:true,share:true,requireinfo:true},
+    createdAt:new Date().toISOString()
+  };
+  galleries.push(gallery);
+  showToast('Creating Drive folder "'+folderName+'"...','info');
+  setTimeout(()=>{
+    showToast('Gallery created + Drive folder ready ✦','success');
+    closeModal('newGalleryModal');
+    renderGalleryCards();
+    renderOverview();
+    document.getElementById('ng-bride').value='';document.getElementById('ng-groom').value='';
+    document.getElementById('ng-date').value='';document.getElementById('ng-location').value='';
+    openGalleryEditor(id);
+  },900);
+}
+
+function renderGalleryCards(){
+  const grid=document.getElementById('galleryCardsGrid');
+  if(!galleries.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">◈</div>No galleries yet. Create your first one.</div>';
+    return;
+  }
+  grid.innerHTML=galleries.map(g=>{
+    const badgeMap={password:'password',unlisted:'unlisted',public:'public',draft:'draft'};
+    const badgeLabel={password:'🔑 Password',unlisted:'🔓 Unlisted',public:'🌐 Public',draft:'🔒 Draft'};
+    return '<div class="gallery-card" onclick="openGalleryEditor(\''+g.id+'\')">'
+      +'<div class="gc-cover" style="background:'+g.coverGradient+'"><span class="gc-badge '+badgeMap[g.access]+'">'+badgeLabel[g.access]+'</span></div>'
+      +'<div class="gc-info">'
+        +'<div class="gc-name">'+g.coupleNames+'</div>'
+        +'<div class="gc-meta">'+(g.date||'No date')+' · '+(g.location||'No location')+'</div>'
+        +'<div class="gc-stats"><span>📸 '+g.photoCount+'</span><span>🎬 '+g.videoCount+'</span><span>👁 '+g.viewCount+'</span></div>'
+        +'<div class="gc-actions"><button class="gc-action-btn" onclick="event.stopPropagation();openShareModalFor(\''+g.id+'\')">⤴ Share</button><button class="gc-action-btn" onclick="event.stopPropagation();deleteGallery(\''+g.id+'\')">✕ Delete</button></div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function deleteGallery(id){
+  if(!confirm('Delete this gallery? The Drive folder stays untouched.'))return;
+  galleries=galleries.filter(g=>g.id!==id);
+  renderGalleryCards();
+  renderOverview();
+  showToast('Gallery deleted','info');
+}
+
+function renderOverview(){
+  document.getElementById('statGalleries').textContent=galleries.length;
+  document.getElementById('statPhotos').textContent=galleries.reduce((a,g)=>a+g.photoCount,0);
+  document.getElementById('statViews').textContent=galleries.reduce((a,g)=>a+g.viewCount,0);
+  document.getElementById('statDownloads').textContent=galleries.reduce((a,g)=>a+g.downloadCount,0);
+  const listEl=document.getElementById('overviewGalleryList');
+  if(!galleries.length){
+    listEl.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text4);font-size:13px">No galleries yet — create your first one.</div>';
+  } else {
+    listEl.innerHTML=galleries.slice(0,4).map(g=>
+      '<div style="display:flex;align-items:center;gap:0.85rem;padding:9px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="width:42px;height:32px;background:'+g.coverGradient+';flex-shrink:0"></div>'
+      +'<div style="flex:1"><div style="font-size:12.5px;color:var(--text)">'+g.coupleNames+'</div><div style="font-size:10.5px;color:var(--text4)">'+g.photoCount+' photos · '+g.videoCount+' films</div></div>'
+      +'<button class="dash-card-action" onclick="openGalleryEditor(\''+g.id+'\')">Open →</button>'
+      +'</div>'
+    ).join('');
+  }
+  const actEl=document.getElementById('overviewActivity');
+  const allActivity=galleries.flatMap(g=>g.activity.map(a=>Object.assign({},a,{galleryName:g.coupleNames})));
+  if(!allActivity.length){
+    actEl.innerHTML='<div style="text-align:center;padding:1.5rem;color:var(--text4);font-size:13px">No client activity yet.</div>';
+  } else {
+    actEl.innerHTML=allActivity.slice(0,6).map(a=>
+      '<div class="activity-log-item"><div class="al-avatar">'+a.name.charAt(0)+'</div><div style="flex:1"><div class="al-name">'+a.name+'</div><div class="al-action">'+a.action+' · '+a.galleryName+'</div></div><div class="al-time">'+a.time+'</div></div>'
+    ).join('');
+  }
+}
+
+// ============ GALLERY EDITOR ============
+function openGalleryEditor(id){
+  activeGalleryId=id;
+  const g=galleries.find(x=>x.id===id);
+  if(!g)return;
+  document.getElementById('editorGalleryName').innerHTML=g.coupleNames;
+  document.getElementById('editorGalleryMeta').textContent=g.folderName+' · '+g.photoCount+' photos · '+g.videoCount+' films';
+  document.getElementById('ed-bride').value=g.bride;
+  document.getElementById('ed-groom').value=g.groom;
+  document.getElementById('ed-date').value=g.date||'';
+  document.getElementById('ed-location').value=g.location||'';
+  document.getElementById('ed-title').value=g.title||'';
+  document.getElementById('ed-password').value=g.password;
+  edFiles=[];
+  duRenderEdQueue();
+  renderSortableGrid(g);
+  renderVideoList(g);
+  renderEdActivity(g);
+  switchDash('editor',null);
+  switchEditorTab('details',document.querySelector('.editor-tab'));
+}
+
+function switchEditorTab(tab,btn){
+  document.querySelectorAll('.editor-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('editor-'+tab).classList.add('active');
+  document.querySelectorAll('.editor-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+}
+
+function edSaveDetails(){
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g)return;
+  g.bride=document.getElementById('ed-bride').value;
+  g.groom=document.getElementById('ed-groom').value;
+  g.coupleNames=g.bride+' & '+g.groom;
+  g.date=document.getElementById('ed-date').value;
+  g.location=document.getElementById('ed-location').value;
+  g.title=document.getElementById('ed-title').value;
+  document.getElementById('editorGalleryName').textContent=g.coupleNames;
+  renderGalleryCards();
+  showToast('Gallery details saved ✦','success');
+}
+
+function edSetCover(input){
+  if(!input.files||!input.files[0])return;
+  const url=URL.createObjectURL(input.files[0]);
+  document.getElementById('edCoverPreview').innerHTML='<img src="'+url+'" style="max-width:100%;max-height:100px;border-radius:3px">';
+  showToast('Cover photo set','success');
+}
+
+// ── Upload media (within editor) ──
+function edFilesSelected(files){
+  if(!files||!files.length)return;
+  Array.from(files).forEach(f=>{
+    if(!edFiles.find(x=>x.name===f.name&&x.size===f.size))
+      edFiles.push({file:f,name:f.name,size:f.size,type:f.type,status:'waiting',progress:0});
+  });
+  duRenderEdQueue();
+}
+function edFmtSize(b){return b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB';}
+function duRenderEdQueue(){
+  const el=document.getElementById('edFileQueue');
+  if(!el)return;
+  el.innerHTML=edFiles.map((f,i)=>{
+    const ico=f.type.startsWith('video/')?'🎬':'🖼';
+    const stText={waiting:'Waiting',uploading:'Uploading...',done:'✦ On Drive'}[f.status]||'—';
+    return '<div class="file-item-row '+f.status+'"><div class="file-ico">'+ico+'</div><div style="flex:1;min-width:0"><div class="file-nm">'+f.name+'</div><div style="display:flex;gap:0.75rem;margin-top:2px"><span style="font-size:11px;color:var(--text4)">'+edFmtSize(f.size)+'</span><span class="file-st '+f.status+'">'+stText+'</span></div>'
+      +(f.status==='uploading'?'<div class="fprog-wrap"><div class="fprog-fill" id="efp'+i+'" style="width:'+f.progress+'%"></div></div>':'')
+    +'</div></div>';
+  }).join('');
+  const btn=document.getElementById('edStartBtn');
+  if(btn) btn.disabled=edFiles.filter(f=>f.status==='waiting').length===0;
+}
+function edStartUpload(){
+  if(!driveConnected){showToast('Connect Google Drive first','error');return;}
+  const waiting=edFiles.filter(f=>f.status==='waiting');
+  if(!waiting.length)return;
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  document.getElementById('edOpWrap').style.display='block';
+  document.getElementById('edStartBtn').disabled=true;
+  document.getElementById('edTotal').textContent=waiting.length;
+  let done=0;
+  function next(idx){
+    if(idx>=waiting.length){ finish(); return; }
+    const item=waiting[idx]; item.status='uploading'; item.progress=0; duRenderEdQueue();
+    const steps=16; const ms=Math.max(500,item.size/9000)/steps; let s=0;
+    const iv=setInterval(()=>{
+      s++; item.progress=Math.min(99,Math.round(s/steps*100));
+      const pEl=document.getElementById('efp'+edFiles.indexOf(item)); if(pEl) pEl.style.width=item.progress+'%';
+      const pct=Math.round((done/waiting.length+item.progress/(100*waiting.length))*100);
+      document.getElementById('edPct').textContent=pct+'%';
+      document.getElementById('edBarFill').style.width=pct+'%';
+      if(s>=steps){
+        clearInterval(iv); item.status='done'; item.progress=100; done++;
+        document.getElementById('edDone').textContent=done;
+        if(g){ if(item.type.startsWith('image/')){g.photoCount++; g.photos.push({name:item.name});} else {g.videoCount++;} }
+        duRenderEdQueue(); next(idx+1);
+      }
+    },ms);
+  }
+  next(0);
+  function finish(){
+    document.getElementById('edBarFill').style.width='100%';
+    document.getElementById('edBarFill').style.background='var(--success)';
+    document.getElementById('edPct').textContent='100%';
+    document.getElementById('edDoneMsg').style.display='inline';
+    document.getElementById('edStartBtn').disabled=false;
+    document.getElementById('editorGalleryMeta').textContent=g.folderName+' · '+g.photoCount+' photos · '+g.videoCount+' films';
+    renderGalleryCards(); renderOverview(); renderSortableGrid(g);
+    showToast(waiting.length+' file(s) uploaded to Drive ✦','success');
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const dz=document.getElementById('edDropZone');
+  if(dz){
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--rose)'});
+    dz.addEventListener('dragleave',e=>{e.preventDefault();dz.style.borderColor='var(--border2)'});
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='var(--border2)';if(e.dataTransfer.files.length)edFilesSelected(e.dataTransfer.files)});
+  }
+});
+
+// ── Arrange photos (drag to reorder) ──
+function renderSortableGrid(g){
+  const grid=document.getElementById('sortableGrid');
+  if(!grid)return;
+  if(!g.photos.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--text4);font-size:13px;padding:2rem">No photos uploaded yet.</div>'; return; }
+  grid.innerHTML=g.photos.map((p,i)=>
+    '<div class="sortable-item" draggable="true" data-idx="'+i+'" ondragstart="sortDragStart(event)" ondragover="sortDragOver(event)" ondrop="sortDrop(event)" ondragend="sortDragEnd(event)">'
+    +'<div class="sortable-num">'+(i+1)+'</div><div class="sortable-thumb">'+p.name.slice(0,14)+'</div></div>'
+  ).join('');
+}
+let sortDragIdx=null;
+function sortDragStart(e){ sortDragIdx=parseInt(e.target.closest('.sortable-item').dataset.idx); e.target.closest('.sortable-item').classList.add('dragging'); }
+function sortDragOver(e){ e.preventDefault(); e.target.closest('.sortable-item')?.classList.add('drag-over'); }
+function sortDragEnd(e){ document.querySelectorAll('.sortable-item').forEach(el=>el.classList.remove('dragging','drag-over')); }
+function sortDrop(e){
+  e.preventDefault();
+  const target=e.target.closest('.sortable-item');
+  if(!target)return;
+  const dropIdx=parseInt(target.dataset.idx);
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(g && sortDragIdx!==null && sortDragIdx!==dropIdx){
+    const moved=g.photos.splice(sortDragIdx,1)[0];
+    g.photos.splice(dropIdx,0,moved);
+    renderSortableGrid(g);
+    showToast('Photo order updated','success');
+  }
+}
+
+// ── Films (YouTube/Vimeo) ──
+function edAddVideo(){
+  const url=document.getElementById('ed-video-url').value.trim();
+  if(!url){showToast('Paste a YouTube or Vimeo link','error');return;}
+  const isYT=url.includes('youtube.com')||url.includes('youtu.be');
+  const isVimeo=url.includes('vimeo.com');
+  if(!isYT&&!isVimeo){showToast('Please paste a valid YouTube or Vimeo link','error');return;}
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g)return;
+  g.videos.push({url,type:isYT?'youtube':'vimeo',title:'Film '+(g.videos.length+1)});
+  g.videoCount++;
+  document.getElementById('ed-video-url').value='';
+  renderVideoList(g);
+  renderGalleryCards();
+  document.getElementById('editorGalleryMeta').textContent=g.folderName+' · '+g.photoCount+' photos · '+g.videoCount+' films';
+  showToast((isYT?'YouTube':'Vimeo')+' film added ✦','success');
+}
+function renderVideoList(g){
+  const el=document.getElementById('edVideoList');
+  if(!el)return;
+  if(!g.videos.length){ el.innerHTML='<div style="font-size:12px;color:var(--text4);padding:1rem 0">No films added yet.</div>'; return; }
+  el.innerHTML=g.videos.map((v,i)=>
+    '<div class="video-link-card"><div class="video-link-ico '+v.type+'">'+(v.type==='youtube'?'▶':'V')+'</div><div style="flex:1"><div class="video-link-title">'+v.title+'</div><div class="video-link-meta">'+v.type+' · plays inline</div></div><button class="gc-action-btn" onclick="edRemoveVideo('+i+')">✕</button></div>'
+  ).join('');
+}
+function edRemoveVideo(i){
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g)return;
+  g.videos.splice(i,1);
+  g.videoCount=Math.max(0,g.videoCount-1);
+  renderVideoList(g);
+  renderGalleryCards();
+}
+
+// ── Access & sharing ──
+function edSetAccess(type,el){
+  edAccessType=type;
+  document.querySelectorAll('.access-option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('edPasswordRow').style.display=type==='password'?'block':'none';
+}
+function edToggle(el){ el.classList.toggle('on'); }
+function edSaveAccess(){
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g)return;
+  g.access=edAccessType;
+  g.password=document.getElementById('ed-password').value||g.password;
+  g.permissions={
+    download:document.getElementById('tg-download').classList.contains('on'),
+    downloadall:document.getElementById('tg-downloadall').classList.contains('on'),
+    likes:document.getElementById('tg-likes').classList.contains('on'),
+    share:document.getElementById('tg-share').classList.contains('on'),
+    requireinfo:document.getElementById('tg-requireinfo').classList.contains('on')
+  };
+  renderGalleryCards();
+  showToast('Access settings saved & published ✦','success');
+}
+
+// ── Activity ──
+function renderEdActivity(g){
+  const el=document.getElementById('edActivityList');
+  if(!el)return;
+  if(!g.activity.length){ el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text4);font-size:13px">No views yet — once you share the link, activity appears here.</div>'; return; }
+  el.innerHTML=g.activity.map(a=>{
+    const icons={viewed:'👁',liked:'♥',downloaded:'⬇',shared:'⤴'};
+    return '<div class="activity-log-item"><div class="al-avatar">'+a.name.charAt(0)+'</div><div style="flex:1"><div class="al-name">'+a.name+' <span style="font-size:10.5px;color:var(--text4)">('+a.email+')</span></div><div class="al-action">'+icons[a.type]+' '+a.action+'</div></div><div class="al-time">'+a.time+'</div></div>';
+  }).join('');
+}
+
+// ============ SHARE MODAL ============
+function openShareModal(){ openShareModalFor(activeGalleryId); }
+function openShareModalFor(id){
+  const g=galleries.find(x=>x.id===id);
+  if(!g)return;
+  activeGalleryId=id;
+  const link='client-gallery.html?gallery='+g.id;
+  document.getElementById('shareModalTitle').textContent='Share — '+g.coupleNames;
+  document.getElementById('shareLinkText').textContent=window.location.href.replace(/[^/]*$/,'')+link;
+  document.getElementById('sharePasswordText').textContent=g.password;
+  document.getElementById('sharePasswordRow').style.display=g.access==='password'?'block':'none';
+  document.getElementById('shareModal').classList.add('open');
+}
+function copyShareLink(){
+  const txt=document.getElementById('shareLinkText').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showToast('Link copied ✦','success')).catch(()=>showToast('Link: '+txt,'info'));
+}
+function copyPassword(){
+  const txt=document.getElementById('sharePasswordText').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showToast('Password copied ✦','success')).catch(()=>showToast('Password: '+txt,'info'));
+}
+function shareWhatsApp(){
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g)return;
+  const link=document.getElementById('shareLinkText').textContent;
+  const msg=encodeURIComponent('Hi! Your wedding gallery from '+g.coupleNames+' is ready 🎉\\n\\nGallery link: '+link+(g.access==='password'?'\\nPassword: '+g.password:'')+'\\n\\nEnjoy your memories ✦');
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+function shareEmail(){
+  const g=galleries.find(x=>x.id===activeGalleryId);
+  if(!g)return;
+  const link=document.getElementById('shareLinkText').textContent;
+  const subject=encodeURIComponent('Your wedding gallery is ready — '+g.coupleNames);
+  const body=encodeURIComponent('Your wedding gallery is ready.\\n\\nGallery link: '+link+(g.access==='password'?'\\nPassword: '+g.password:''));
+  window.location.href='mailto:?subject='+subject+'&body='+body;
+}
+
+// ============ STUDIO PROFILE ============
+function setLogo(input){
+  if(!input.files||!input.files[0])return;
+  const url=URL.createObjectURL(input.files[0]);
+  document.getElementById('logoPreview').innerHTML='<img src="'+url+'" style="max-height:60px;border-radius:3px">';
+  showToast('Logo uploaded','success');
+}
+
+// ============ DEMO SEED DATA ============
+function seedDemo(){
+  // Adds one example gallery with sample client activity for demonstration purposes
+  const g={
+    id:'rohan-priya-demo',bride:'Priya',groom:'Rohan',coupleNames:'Rohan & Priya',
+    date:'2025-03-15',location:'Udaipur, Rajasthan',title:'A Udaipur Love Story',
+    folderName:'Rohan & Priya — 2025-03-15',
+    coverGradient:'linear-gradient(135deg,#e8d5c4,#c4a080)',
+    access:'password',password:'rp2025',
+    photoCount:6,videoCount:1,viewCount:24,downloadCount:9,
+    photos:[{name:'ceremony-1.jpg'},{name:'ceremony-2.jpg'},{name:'haldi-1.jpg'},{name:'sangeet-1.jpg'},{name:'reception-1.jpg'},{name:'portrait-1.jpg'}],
+    videos:[{url:'https://youtube.com/watch?v=demo',type:'youtube',title:'Wedding Film'}],
+    activity:[
+      {name:'Priya\'s Mom',email:'mom@gmail.com',type:'viewed',action:'viewed the gallery',time:'2h ago'},
+      {name:'Rohan',email:'rohan@gmail.com',type:'downloaded',action:'downloaded 12 photos',time:'5h ago'},
+      {name:'Priya\'s Sister',email:'sis@gmail.com',type:'liked',action:'liked 8 photos',time:'1d ago'}
+    ],
+    permissions:{download:true,downloadall:true,likes:true,share:true,requireinfo:true},
+    createdAt:new Date().toISOString()
+  };
+  galleries.push(g);
+  renderGalleryCards();
+  renderOverview();
+}
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded',()=>{
+  updateDriveUI();
+  document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }));
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('newGalleryModal'); closeModal('shareModal'); }});
+window.addEventListener('resize',()=>{
+  if(window.innerWidth>860){
+    document.getElementById('mobileDrawer').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('dashSidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
