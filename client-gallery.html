@@ -185,6 +185,7 @@ img{display:block;max-width:100%}
 @media(max-width:760px){.lock-wrap{grid-template-columns:1fr}.lock-visual{min-height:200px}.g-masonry{columns:2}}
 @media(max-width:480px){.g-masonry{columns:1}}
 </style>
+<script type="module" src="firebase-init.js"></script>
 </head>
 <body>
 
@@ -405,6 +406,8 @@ var MOCK_GALLERIES = {
 };
 
 var currentGallery = null;
+var currentStudioId = null;
+var currentGalleryDocId = null;
 var visitorInfo = null;
 var likedPhotos = new Set();
 var lbItems = [];
@@ -434,24 +437,62 @@ function showView(id) {
   window.scrollTo(0, 0);
 }
 
-function loadGalleryFromURL() {
+async function loadGalleryFromURL() {
   var params = new URLSearchParams(window.location.search);
-  var galleryId = params.get("gallery") || "rohan-priya-demo";
-  var g = MOCK_GALLERIES[galleryId];
-  if (!g) {
-    document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>Gallery not found</h2><p style='color:#9a8070;margin-top:0.5rem'>This link may be incorrect or expired.</p></div>";
+  var shareId = params.get("gallery");
+  if (!shareId) {
+    document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>No gallery specified</h2><p style='color:#9a8070;margin-top:0.5rem'>This link is missing a gallery ID.</p></div>";
     return;
   }
-  currentGallery = g;
-  document.getElementById("lockCouple").innerHTML = g.coupleNames.replace(" & ", " &amp; <em>") + "</em>";
-  document.getElementById("lockSubtitle").textContent = g.subtitle;
-  document.getElementById("lockDate").textContent = g.date + " · " + g.location;
-  document.getElementById("lockVisual").style.background = g.coverGradient;
-  document.getElementById("lockStudioLogo").textContent = g.studioName.charAt(0);
-  document.getElementById("lockStudioName").textContent = g.studioName;
-  if (g.access !== "password") {
-    unlockGallery();
-  }
+
+  var waitForFirebase = setInterval(async function () {
+    if (!window.FrameStudioFirebase) return;
+    clearInterval(waitForFirebase);
+
+    try {
+      var result = await window.FrameStudioFirebase.findGalleryByShareId(shareId);
+      if (!result) {
+        document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>Gallery not found</h2><p style='color:#9a8070;margin-top:0.5rem'>This link may be incorrect or expired.</p></div>";
+        return;
+      }
+
+      var gallery = result.gallery;
+      var studio = result.studio;
+
+      currentGallery = {
+        coupleNames: gallery.coupleNames,
+        subtitle: gallery.title || "",
+        date: gallery.date || "",
+        location: gallery.location || "",
+        access: gallery.access || "password",
+        password: gallery.password,
+        requireInfo: gallery.permissions ? gallery.permissions.requireinfo : true,
+        studioName: studio.studio || "FrameStudio",
+        studioAbout: studio.about || "Wedding storytelling, captured with heart.",
+        studioPhone: studio.phone || "",
+        studioEmail: studio.email || "",
+        permissions: gallery.permissions || { download: true, downloadall: true, likes: true, share: true },
+        coverGradient: gallery.coverGradient || "linear-gradient(135deg,#e8d5c4,#c4a080)",
+        photos: gallery.photos || [],
+        videos: gallery.videos || []
+      };
+      currentStudioId = result.studioId;
+      currentGalleryDocId = gallery.id;
+
+      document.getElementById("lockCouple").innerHTML = currentGallery.coupleNames.replace(" & ", " &amp; <em>") + "</em>";
+      document.getElementById("lockSubtitle").textContent = currentGallery.subtitle;
+      document.getElementById("lockDate").textContent = currentGallery.date + " · " + currentGallery.location;
+      document.getElementById("lockVisual").style.background = currentGallery.coverGradient;
+      document.getElementById("lockStudioLogo").textContent = currentGallery.studioName.charAt(0);
+      document.getElementById("lockStudioName").textContent = currentGallery.studioName;
+      if (currentGallery.access !== "password") {
+        unlockGallery();
+      }
+    } catch (err) {
+      console.error("Failed to load gallery:", err);
+      document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>Could not load gallery</h2><p style='color:#9a8070;margin-top:0.5rem'>Please check the link and try again.</p></div>";
+    }
+  }, 100);
 }
 
 function submitPassword() {
@@ -500,57 +541,55 @@ function renderGallery(g) {
   document.getElementById("studioCardPhone").textContent = g.studioPhone;
   document.getElementById("studioCardEmail").textContent = g.studioEmail;
 
-  var totalPhotos = g.albums.reduce(function (a, b) { return a + b.photos.length; }, 0);
-  document.getElementById("gStatPhotos").textContent = totalPhotos;
-  document.getElementById("gStatFilms").textContent = g.films.length;
+  document.getElementById("gStatPhotos").textContent = g.photos.length;
+  document.getElementById("gStatFilms").textContent = g.videos.length;
   document.getElementById("gLikeCount").textContent = likedPhotos.size;
   document.getElementById("downloadAllBtn").style.display = g.permissions.downloadall ? "inline-flex" : "none";
 
-  var tabsEl = document.getElementById("gFilterTabs");
-  var tabsHtml = '<button class="filter-btn active" onclick="showAlbum(null,this)">All photos</button>';
-  g.albums.forEach(function (a) {
-    tabsHtml += '<button class="filter-btn" onclick="showAlbum(\'' + a.id + '\',this)">' + a.name + ' (' + a.photos.length + ')</button>';
-  });
-  tabsEl.innerHTML = tabsHtml;
-  showAlbum(null, tabsEl.querySelector(".filter-btn"));
+  document.getElementById("gFilterTabs").innerHTML = "";
+  showAlbum(null, null);
 
   var filmsGrid = document.getElementById("gFilmsGrid");
-  if (!g.films.length) {
+  if (!g.videos.length) {
     document.getElementById("filmsSection").style.display = "none";
   } else {
     var filmsHtml = "";
-    g.films.forEach(function (f, i) {
-      filmsHtml += '<div class="g-film-card" onclick="playFilm(' + i + ')"><div class="g-film-thumb"><div class="g-play-ring"><div class="g-play-tri"></div></div><div class="g-film-badge">' + f.type + '</div></div><div class="g-film-info"><div class="g-film-title">' + f.title + '</div><div class="g-film-meta">' + f.duration + '</div></div></div>';
+    g.videos.forEach(function (f, i) {
+      filmsHtml += '<div class="g-film-card" onclick="playFilm(' + i + ')"><div class="g-film-thumb"><div class="g-play-ring"><div class="g-play-tri"></div></div></div><div class="g-film-info"><div class="g-film-title">' + (f.name || "Film " + (i + 1)) + '</div></div></div>';
     });
     filmsGrid.innerHTML = filmsHtml;
+  }
+
+  if (g.photos.length === 0) {
+    document.getElementById("gPhotoGrid").innerHTML = "<div style='padding:2rem;text-align:center;color:var(--text4);font-size:13px;grid-column:1/-1'>No photos uploaded yet. Check back soon.</div>";
   }
 
   loadFaceApiModels();
 }
 
 function showAlbum(albumId, btn) {
-  document.querySelectorAll("#gFilterTabs .filter-btn").forEach(function (b) { b.classList.remove("active"); });
-  if (btn) btn.classList.add("active");
+  if (btn) {
+    document.querySelectorAll("#gFilterTabs .filter-btn").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+  }
   var grid = document.getElementById("gPhotoGrid");
   lbItems = [];
-  var albums = albumId ? currentGallery.albums.filter(function (a) { return a.id === albumId; }) : currentGallery.albums;
   var html = "";
-  albums.forEach(function (album) {
-    album.photos.forEach(function (p, i) {
-      var idx = lbItems.length;
-      var photoId = album.id + "-" + i;
-      lbItems.push({ title: album.name + " photo " + (i + 1), album: album.name, id: photoId, url: p.url });
-      html += '<div class="g-brick" onclick="openLB(' + idx + ')">'
-        + '<img class="g-brick-img" src="' + p.url + '" loading="lazy" style="height:' + p.h + 'px">'
-        + '<div class="g-brick-overlay"></div>'
-        + '<div class="g-brick-actions">'
-        + (currentGallery.permissions.likes ? '<button class="g-brick-btn ' + (likedPhotos.has(photoId) ? "favorited" : "") + '" onclick="event.stopPropagation();toggleLike(\'' + photoId + '\',this)">' + (likedPhotos.has(photoId) ? "&hearts;" : "&#9825;") + '</button>' : "")
-        + (currentGallery.permissions.download ? '<button class="g-brick-btn" onclick="event.stopPropagation();downloadPhoto(\'' + photoId + '\',\'' + p.url + '\')">&#8595;</button>' : "")
-        + '</div>'
-        + '</div>';
-    });
+  currentGallery.photos.forEach(function (p, i) {
+    var idx = lbItems.length;
+    var photoId = "photo-" + i;
+    var url = p.url || p.directLink || "";
+    lbItems.push({ title: p.name || ("Photo " + (i + 1)), album: "", id: photoId, url: url });
+    html += '<div class="g-brick" onclick="openLB(' + idx + ')">'
+      + '<img class="g-brick-img" src="' + url + '" loading="lazy" style="height:220px">'
+      + '<div class="g-brick-overlay"></div>'
+      + '<div class="g-brick-actions">'
+      + (currentGallery.permissions.likes ? '<button class="g-brick-btn ' + (likedPhotos.has(photoId) ? "favorited" : "") + '" onclick="event.stopPropagation();toggleLike(\'' + photoId + '\',this)">' + (likedPhotos.has(photoId) ? "&hearts;" : "&#9825;") + '</button>' : "")
+      + (currentGallery.permissions.download ? '<button class="g-brick-btn" onclick="event.stopPropagation();downloadPhoto(\'' + photoId + '\',\'' + url + '\')">&#8595;</button>' : "")
+      + '</div>'
+      + '</div>';
   });
-  grid.innerHTML = html;
+  if (currentGallery.photos.length > 0) grid.innerHTML = html;
 }
 
 function toggleLike(photoId, btn) {
@@ -642,9 +681,11 @@ function lbDownload() {
 }
 
 function playFilm(idx) {
-  var f = currentGallery.films[idx];
-  document.getElementById("filmModalTitle").textContent = f.title;
-  document.getElementById("filmFrame").src = f.embed;
+  var f = currentGallery.videos[idx];
+  document.getElementById("filmModalTitle").textContent = f.name || "Film";
+  var driveId = f.driveId;
+  var embedSrc = driveId ? ("https://drive.google.com/file/d/" + driveId + "/preview") : (f.url || "");
+  document.getElementById("filmFrame").src = embedSrc;
   document.getElementById("filmModal").classList.add("open");
   document.body.style.overflow = "hidden";
 }
