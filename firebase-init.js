@@ -8,7 +8,8 @@ const app = initializeApp({
   projectId: "frame-studio-481c4",
   storageBucket: "frame-studio-481c4.firebasestorage.app",
   messagingSenderId: "644674946255",
-  appId: "1:644674946255:web:cb08325f7c9bfad86fe3ba"
+  appId: "1:644674946255:web:cb08325f7c9bfad86fe3ba",
+  measurementId: "G-FEPTTW37MX"
 });
 
 const auth = getAuth(app);
