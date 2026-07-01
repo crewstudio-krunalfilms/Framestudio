@@ -1,27 +1,14 @@
 // api/auth/google/start.js
-//
-// This file runs on Vercel's server (never in the browser).
-// When a photographer clicks "Connect Google Drive" on the site,
-// the browser calls this endpoint, which redirects them to Google's
-// real consent screen.
-//
-// It reads GOOGLE_CLIENT_ID from Vercel's environment variables —
-// the Client ID is safe to use here since it's not secret.
+// Redirects the photographer to Google's real OAuth consent screen.
+// Client ID is hardcoded since it is not secret.
 
 export default function handler(req, res) {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const siteUrl = process.env.SITE_URL || 'https://framestudio-three.vercel.app';
+  const clientId = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
+  const siteUrl = 'https://framestudio-three.vercel.app';
 
-  if (!clientId) {
-    res.status(500).send('Server is missing GOOGLE_CLIENT_ID. Check Vercel environment variables.');
-    return;
-  }
-
-  // studioId identifies which photographer is connecting —
-  // passed in from the browser as a query param, e.g. ?studioId=abc123
   const studioId = req.query.studioId;
   if (!studioId) {
-    res.status(400).send('Missing studioId. This should be the signed-in user\'s Firebase UID.');
+    res.status(400).send('Missing studioId.');
     return;
   }
 
@@ -32,9 +19,6 @@ export default function handler(req, res) {
     'https://www.googleapis.com/auth/userinfo.email'
   ].join(' ');
 
-  // "state" carries the studioId through the Google flow so we know
-  // whose account to attach the Drive connection to when Google sends
-  // the user back to us.
   const state = encodeURIComponent(JSON.stringify({ studioId }));
 
   const params = new URLSearchParams({
@@ -48,6 +32,5 @@ export default function handler(req, res) {
   });
 
   const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-
   res.redirect(302, googleAuthUrl);
 }
