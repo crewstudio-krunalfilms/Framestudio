@@ -2,226 +2,241 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
 <title>Your Wedding Gallery — FrameStudio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@1,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script type="module" src="firebase-init.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
   --cream:#faf6f1;--cream2:#f5ede3;--cream3:#efe4d6;
-  --blush:#e8c9b4;--blush2:#d4a98a;--blush3:#c49070;
+  --blush:#e8c9b4;--blush3:#c49070;
   --rose:#b87558;--rose2:#9a6040;
   --mocha:#6b4c38;--mocha2:#4a3328;
   --warm:#f0e6da;
   --text:#3a2a1e;--text2:#6b5545;--text3:#9a8070;--text4:#c4afa0;
-  --white:#ffffff;
+  --white:#fff;
   --border:rgba(180,144,112,0.2);--border2:rgba(180,144,112,0.35);
   --shadow:rgba(107,76,56,0.12);
-  --gold:#c9956e;--gold2:#e8b898;
+  --gold2:#e8b898;
   --success:#4a7a4a;--error:#c45a4a;
 }
 html{scroll-behavior:smooth}
 body{font-family:'Jost',sans-serif;background:var(--cream);color:var(--text);overflow-x:hidden;min-width:320px}
-button,input,textarea{font-family:inherit}
-:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+button,input{font-family:inherit}
 img{display:block;max-width:100%}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-.toast-wrap{position:fixed;top:1rem;right:1.25rem;z-index:1300;display:flex;flex-direction:column;gap:0.5rem;max-width:min(340px,90vw)}
-.toast{background:var(--mocha);color:var(--blush);padding:11px 16px;font-size:12.5px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 28px rgba(0,0,0,0.2);animation:slideUp 0.3s ease;border-left:3px solid var(--rose)}
-.toast.success{border-left-color:var(--success)}
-.toast.error{border-left-color:var(--error)}
-.view{display:none}
-.view.active{display:block}
+
+.toast-wrap{position:fixed;top:1rem;right:1rem;z-index:1300;display:flex;flex-direction:column;gap:.45rem;max-width:min(320px,90vw)}
+.toast{background:var(--mocha);color:var(--blush);padding:10px 14px;font-size:12.5px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.2);animation:fadeUp .28s ease;border-left:3px solid var(--rose)}
+.toast.ok{border-left-color:var(--success)}.toast.err{border-left-color:var(--error)}
+
+.view{display:none}.view.active{display:block}
+
+/* LOCK */
 .lock-wrap{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
 .lock-visual{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:340px;background:linear-gradient(135deg,#e8d5c4,#c4a080)}
-.lock-visual-overlay{position:absolute;inset:0;background:rgba(74,51,40,0.45)}
+.lock-overlay{position:absolute;inset:0;background:rgba(74,51,40,.45)}
 .lock-content{position:relative;z-index:1;text-align:center;padding:3rem 2rem;max-width:360px}
-.lock-couple{font-family:'Playfair Display',serif;font-size:clamp(30px,4.5vw,48px);color:var(--white);font-weight:400;line-height:1.12;margin-bottom:0.5rem}
-.lock-couple em{font-style:italic}
-.lock-subtitle{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:rgba(255,255,255,0.7);margin-bottom:0.6rem}
-.lock-date{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.45)}
+.lock-names{font-family:'Playfair Display',serif;font-size:clamp(28px,4.5vw,46px);color:var(--white);font-weight:400;line-height:1.12;margin-bottom:.45rem}
+.lock-names em{font-style:italic}
+.lock-subtitle{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:rgba(255,255,255,.65);margin-bottom:.5rem}
+.lock-date{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4)}
 .lock-right{display:flex;align-items:center;justify-content:center;padding:clamp(2rem,5vw,4rem);background:var(--cream)}
-.lock-box{width:100%;max-width:380px}
-.lock-studio-row{display:flex;align-items:center;gap:0.6rem;margin-bottom:1.5rem;padding:0.75rem 1rem;background:var(--white);border:1px solid var(--border)}
-.lock-studio-logo{width:36px;height:36px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;color:var(--mocha);flex-shrink:0}
-.lock-studio-name{font-size:12.5px;color:var(--text2)}
-.lock-studio-label{font-size:9.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text4)}
-.lock-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--mocha);margin-bottom:0.4rem}
-.lock-sub{font-size:13px;color:var(--text2);font-weight:300;margin-bottom:1.75rem;line-height:1.7}
-.form-row{margin-bottom:1.1rem}
-.form-label{display:block;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:0.4rem}
-.form-input{width:100%;background:var(--warm);border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-size:14px;font-weight:300;outline:none;transition:all 0.2s}
+.lock-box{width:100%;max-width:360px}
+.studio-row{display:flex;align-items:center;gap:.55rem;margin-bottom:1.4rem;padding:.65rem .9rem;background:var(--white);border:1px solid var(--border)}
+.studio-icon{width:34px;height:34px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;color:var(--mocha);flex-shrink:0}
+.studio-by{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text4)}
+.studio-nm{font-size:12.5px;color:var(--text2)}
+.lock-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--mocha);margin-bottom:.35rem}
+.lock-sub{font-size:12.5px;color:var(--text2);font-weight:300;line-height:1.7;margin-bottom:1.5rem}
+.form-row{margin-bottom:.9rem}
+.form-label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:.35rem}
+.form-input{width:100%;background:var(--warm);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-size:13.5px;font-weight:300;outline:none;transition:all .2s}
 .form-input:focus{border-color:var(--blush3);background:var(--white)}
-.form-input.error{border-color:var(--error);animation:shake 0.4s}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.form-submit{width:100%;padding:13px;background:var(--rose);color:var(--white);border:none;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;cursor:pointer;transition:all 0.3s}
-.form-submit:hover{background:var(--rose2)}
-.form-submit:disabled{opacity:0.55;cursor:wait}
-.pw-err{font-size:12px;color:var(--error);margin-top:0.5rem;display:none}
-.lock-hint{font-size:11.5px;color:var(--text4);margin-top:1.5rem;text-align:center;line-height:1.7}
+.form-input.err{border-color:var(--error);animation:shake .38s}
+@keyframes shake{0%,100%{transform:translateX(0)}30%{transform:translateX(-5px)}70%{transform:translateX(5px)}}
+.form-submit{width:100%;padding:12px;background:var(--rose);color:var(--white);border:none;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:all .25s;margin-top:.25rem}
+.form-submit:hover{background:var(--rose2)}.form-submit:disabled{opacity:.55;cursor:wait}
+.pw-err{font-size:12px;color:var(--error);margin-top:.4rem;display:none}
+.lock-hint{font-size:11.5px;color:var(--text4);margin-top:1.3rem;text-align:center;line-height:1.7}
 .lock-hint strong{color:var(--text3)}
+
+/* GATE */
 .gate-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream2);padding:2rem}
-.gate-box{max-width:420px;width:100%;text-align:center}
-.gate-icon{font-size:40px;margin-bottom:1.1rem}
-.gate-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--mocha);margin-bottom:0.6rem}
-.gate-text{font-size:13.5px;color:var(--text2);line-height:1.75;font-weight:300;margin-bottom:1.75rem}
-.g-nav{position:sticky;top:0;z-index:300;background:rgba(250,246,241,0.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0.85rem clamp(1.25rem,4vw,3rem);display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.g-nav-brand{display:flex;align-items:center;gap:0.6rem}
-.g-nav-logo{width:32px;height:32px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;color:var(--mocha)}
-.g-nav-studio{font-size:12px;color:var(--text2)}
-.g-nav-actions{display:flex;gap:0.5rem}
-.g-icon-btn{height:36px;padding:0 14px;border:1px solid var(--border2);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;letter-spacing:0.06em;color:var(--text2);transition:all 0.2s;border-radius:18px}
+.gate-box{max-width:400px;width:100%;text-align:center}
+.gate-icon{font-size:38px;margin-bottom:1rem}
+.gate-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--mocha);margin-bottom:.55rem}
+.gate-text{font-size:13px;color:var(--text2);font-weight:300;line-height:1.75;margin-bottom:1.5rem}
+
+/* LOADING */
+.load-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream);flex-direction:column;gap:1rem}
+.load-spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--rose);border-radius:50%;animation:spin .7s linear infinite}
+.load-text{font-size:13px;color:var(--text3);font-family:'Playfair Display',serif}
+
+/* GALLERY NAV */
+.g-nav{position:sticky;top:0;z-index:300;background:rgba(250,246,241,.97);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:.8rem clamp(1.25rem,4vw,3rem);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.g-nav-brand{display:flex;align-items:center;gap:.55rem}
+.g-nav-icon{width:30px;height:30px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:12px;color:var(--mocha)}
+.g-nav-nm{font-size:12px;color:var(--text2)}
+.g-nav-acts{display:flex;gap:.4rem}
+.g-icon-btn{height:34px;padding:0 12px;border:1px solid var(--border2);background:var(--white);display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;color:var(--text2);transition:all .2s;border-radius:17px}
 .g-icon-btn:hover{border-color:var(--rose);color:var(--rose)}
+
+/* HERO */
 .g-hero{background:var(--mocha2);padding:clamp(3.5rem,8vw,5.5rem) clamp(1.25rem,4vw,4rem) clamp(2rem,4vw,3rem);position:relative;overflow:hidden}
-.g-hero-orb{position:absolute;width:380px;height:380px;background:radial-gradient(circle,rgba(200,144,100,0.15),transparent 70%);top:-100px;right:-100px;pointer-events:none}
+.g-hero-orb{position:absolute;width:360px;height:360px;background:radial-gradient(circle,rgba(200,144,100,.12),transparent 70%);top:-90px;right:-90px;pointer-events:none}
 .g-hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1}
-.g-hero-eyebrow{font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(232,185,152,0.35);margin-bottom:0.6rem}
-.g-hero-names{font-family:'Playfair Display',serif;font-size:clamp(30px,5vw,54px);color:var(--gold2);font-weight:400;line-height:1.1;margin-bottom:0.4rem}
+.g-hero-eye{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(232,185,152,.3);margin-bottom:.5rem}
+.g-hero-names{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,52px);color:var(--gold2);font-weight:400;line-height:1.1;margin-bottom:.35rem}
 .g-hero-names em{font-style:italic;color:var(--blush)}
-.g-hero-subtitle{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;color:rgba(232,185,152,0.6);margin-bottom:0.5rem}
-.g-hero-dateloc{font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(232,185,152,0.4)}
-.g-hero-actions{display:flex;gap:0.7rem;flex-wrap:wrap;margin-top:1.5rem}
-.g-btn{padding:10px 22px;font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;border:1px solid rgba(232,185,152,0.3);color:var(--gold2);background:transparent}
-.g-btn:hover{background:rgba(232,185,152,0.1)}
-.g-btn.primary{background:var(--rose);border-color:var(--rose);color:var(--white)}
-.g-btn.primary:hover{background:var(--rose2)}
-.g-btn:disabled{opacity:0.5;cursor:not-allowed}
-.g-stats{background:var(--warm);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:1rem clamp(1.25rem,4vw,4rem);display:flex;gap:0;overflow-x:auto}
-.g-stat{padding:0.5rem 1.6rem;border-right:1px solid var(--border);text-align:center;flex-shrink:0}
-.g-stat:last-child{border-right:none}
-.g-stat-num{font-family:'Playfair Display',serif;font-size:22px;color:var(--rose);line-height:1;margin-bottom:2px}
-.g-stat-lbl{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3)}
+.g-hero-sub{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:rgba(232,185,152,.55);margin-bottom:.4rem}
+.g-hero-loc{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(232,185,152,.35)}
+.g-hero-acts{display:flex;gap:.65rem;flex-wrap:wrap;margin-top:1.4rem}
+.g-btn{padding:9px 20px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:all .22s;border:1px solid rgba(232,185,152,.28);color:var(--gold2);background:transparent}
+.g-btn:hover{background:rgba(232,185,152,.1)}
+.g-btn.primary{background:var(--rose);border-color:var(--rose);color:var(--white)}.g-btn.primary:hover{background:var(--rose2)}
+
+.g-stats{background:var(--warm);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.85rem clamp(1.25rem,4vw,4rem);display:flex;overflow-x:auto}
+.g-stat{padding:.45rem 1.4rem;border-right:1px solid var(--border);text-align:center;flex-shrink:0}.g-stat:last-child{border-right:none}
+.g-stat-n{font-family:'Playfair Display',serif;font-size:20px;color:var(--rose);line-height:1;margin-bottom:1px}
+.g-stat-l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+
 .g-section{padding:clamp(2rem,5vw,3.5rem) clamp(1.25rem,4vw,4rem);max-width:1100px;margin:0 auto}
-.g-section-title{font-family:'Playfair Display',serif;font-size:clamp(22px,3.2vw,28px);color:var(--mocha);margin-bottom:0.3rem}
-.g-section-title em{font-style:italic;color:var(--rose)}
-.g-section-sub{font-size:12.5px;color:var(--text2);margin-bottom:1.4rem;font-weight:300}
-.face-search-bar{background:var(--white);border:1px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.face-search-text{flex:1;min-width:180px}
-.face-search-title{font-size:13px;font-weight:500;color:var(--mocha);margin-bottom:2px}
-.face-search-sub{font-size:11.5px;color:var(--text3)}
-.face-search-status-pill{font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:0.05em;display:inline-flex;align-items:center;gap:5px}
-.face-search-status-pill.loading{background:rgba(196,144,112,0.1);color:var(--rose)}
-.face-search-status-pill.ready{background:rgba(74,122,74,0.1);color:var(--success)}
-.spin-dot{width:7px;height:7px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite}
-.g-filter{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;margin-bottom:1.5rem}
-.filter-btn{padding:0.6rem 1.05rem;font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;white-space:nowrap}
-.filter-btn.active{color:var(--rose);border-bottom-color:var(--rose)}
+.g-sec-h{font-family:'Playfair Display',serif;font-size:clamp(20px,3vw,26px);color:var(--mocha);margin-bottom:.25rem}.g-sec-h em{font-style:italic;color:var(--rose)}
+.g-sec-sub{font-size:12px;color:var(--text2);font-weight:300;margin-bottom:1.3rem}
+
+/* AI search bar */
+.ai-bar{background:var(--white);border:1px solid var(--border);padding:.9rem 1.2rem;margin-bottom:1.4rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.ai-texts{flex:1;min-width:180px}
+.ai-title{font-size:13px;font-weight:500;color:var(--mocha);margin-bottom:1px}
+.ai-sub{font-size:11.5px;color:var(--text3)}
+.ai-pill{font-size:10px;padding:3px 10px;border-radius:14px;display:inline-flex;align-items:center;gap:4px}
+.ai-pill.loading{background:rgba(196,144,112,.1);color:var(--rose)}.ai-pill.ready{background:rgba(74,122,74,.1);color:var(--success)}
+.spin-sm{width:7px;height:7px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .65s linear infinite}
+
+/* Photos masonry */
 .g-masonry{columns:3;gap:5px;column-fill:balance}
-.g-brick{break-inside:avoid;margin-bottom:5px;position:relative;overflow:hidden;cursor:pointer;display:block;background:var(--cream3)}
-.g-brick-img{width:100%;display:block;transition:transform 0.5s ease;object-fit:cover}
+.g-brick{break-inside:avoid;margin-bottom:5px;position:relative;overflow:hidden;cursor:pointer;background:var(--cream3)}
+.g-brick-img{width:100%;display:block;transition:transform .45s ease;object-fit:cover}
 .g-brick:hover .g-brick-img{transform:scale(1.04)}
-.g-brick-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(74,51,40,0.65) 0%,transparent 55%);opacity:0;transition:opacity 0.3s}
-.g-brick:hover .g-brick-overlay{opacity:1}
-.g-brick-actions{position:absolute;top:0.6rem;right:0.6rem;display:flex;gap:0.35rem;z-index:2}
-.g-brick-btn{width:30px;height:30px;background:rgba(250,246,241,0.92);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all 0.2s;border:none}
-.g-brick-btn:hover{background:var(--white);transform:scale(1.1)}
-.g-brick-btn.favorited{color:var(--rose)}
-.g-films-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem}
-.g-film-card{background:var(--white);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all 0.3s}
-.g-film-card:hover{transform:translateY(-3px);box-shadow:0 12px 30px var(--shadow)}
-.g-film-thumb{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;background:var(--mocha2)}
-.g-play-ring{width:54px;height:54px;border:1.5px solid rgba(232,185,152,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center}
-.g-play-tri{width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:14px solid var(--gold2);margin-left:3px}
-.g-film-badge{position:absolute;top:0.6rem;right:0.6rem;font-size:9px;padding:2px 8px;letter-spacing:0.08em;text-transform:uppercase;background:rgba(0,0,0,0.5);color:var(--blush);border-radius:2px}
-.g-film-info{padding:0.8rem 1rem}
-.g-film-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--mocha);margin-bottom:2px}
-.g-film-meta{font-size:10.5px;color:var(--text3)}
+.g-brick-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(74,51,40,.6),transparent 55%);opacity:0;transition:opacity .28s}
+.g-brick:hover .g-brick-ov{opacity:1}
+.g-brick-acts{position:absolute;top:.55rem;right:.55rem;display:flex;gap:.3rem;z-index:2}
+.g-brick-btn{width:28px;height:28px;background:rgba(250,246,241,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all .2s;border:none}
+.g-brick-btn:hover{background:var(--white);transform:scale(1.1)}.g-brick-btn.fav{color:var(--rose)}
+.g-brick-match{position:absolute;bottom:.45rem;left:.45rem;background:rgba(74,122,74,.85);color:white;font-size:9.5px;padding:2px 6px;border-radius:2px}
+
+/* Films */
+.films-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.9rem}
+.film-card{background:var(--white);border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:all .28s}
+.film-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px var(--shadow)}
+.film-thumb{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--mocha2);position:relative}
+.play-ring{width:48px;height:48px;border:1.5px solid rgba(232,185,152,.55);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.play-tri{width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:13px solid var(--gold2);margin-left:3px}
+.film-badge{position:absolute;top:.55rem;right:.55rem;font-size:9px;padding:2px 7px;letter-spacing:.06em;text-transform:uppercase;background:rgba(0,0,0,.5);color:var(--blush);border-radius:2px}
+.film-body{padding:.75rem .9rem}
+.film-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--mocha);margin-bottom:1px}
+.film-meta{font-size:10.5px;color:var(--text3)}
+
+/* Studio footer card */
 .studio-card{background:var(--warm);border-top:1px solid var(--border);padding:clamp(2rem,4vw,3rem) clamp(1.25rem,4vw,4rem)}
-.studio-card-inner{max-width:600px;margin:0 auto;text-align:center}
-.studio-card-logo{width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:24px;color:var(--mocha);margin:0 auto 1rem}
-.studio-card-name{font-family:'Playfair Display',serif;font-size:20px;color:var(--mocha);margin-bottom:0.5rem}
-.studio-card-about{font-size:13px;color:var(--text2);font-weight:300;line-height:1.75;margin-bottom:1.2rem}
-.studio-card-contact{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;font-size:12.5px;color:var(--text2)}
-.g-footer{background:var(--mocha2);padding:2rem clamp(1.25rem,4vw,4rem);text-align:center}
-.g-footer-brand{font-family:'Playfair Display',serif;font-size:13px;color:rgba(232,185,152,0.4)}
-.g-footer-brand em{font-style:italic;color:rgba(232,185,152,0.6)}
-.lb{display:none;position:fixed;inset:0;z-index:900;background:rgba(74,51,40,0.97);align-items:center;justify-content:center;padding:1rem;flex-direction:column;gap:1rem}
+.studio-card-inner{max-width:560px;margin:0 auto;text-align:center}
+.sc-logo{width:56px;height:56px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:22px;color:var(--mocha);margin:0 auto .9rem}
+.sc-name{font-family:'Playfair Display',serif;font-size:19px;color:var(--mocha);margin-bottom:.45rem}
+.sc-about{font-size:13px;color:var(--text2);font-weight:300;line-height:1.7;margin-bottom:1rem}
+.sc-contact{display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;font-size:12.5px;color:var(--text2)}
+
+.g-footer{background:var(--mocha2);padding:1.75rem clamp(1.25rem,4vw,4rem);text-align:center}
+.g-footer-brand{font-family:'Playfair Display',serif;font-size:13px;color:rgba(232,185,152,.38)}.g-footer-brand em{font-style:italic;color:rgba(232,185,152,.55)}
+
+/* LIGHTBOX */
+.lb{display:none;position:fixed;inset:0;z-index:900;background:rgba(74,51,40,.97);align-items:center;justify-content:center;padding:1rem;flex-direction:column;gap:.9rem}
 .lb.open{display:flex}
-.lb-close{position:absolute;top:1rem;right:1rem;width:40px;height:40px;background:none;border:1px solid rgba(232,185,152,0.2);color:var(--blush);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.lb-close:hover{background:rgba(232,185,152,0.1)}
-.lb-media{max-width:820px;width:100%;max-height:62vh;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border:1px solid rgba(232,185,152,0.12)}
-.lb-media img{max-width:100%;max-height:62vh;object-fit:contain}
-.lb-meta-row{text-align:center}
-.lb-title-text{font-family:'Playfair Display',serif;font-size:clamp(17px,3vw,22px);color:var(--gold2);margin-bottom:3px}
-.lb-meta-text{font-size:12px;color:rgba(232,185,152,0.45);letter-spacing:0.06em}
-.lb-counter{font-size:11px;color:rgba(232,185,152,0.35);margin-top:4px;letter-spacing:0.1em}
-.lb-nav{display:flex;gap:0.85rem;justify-content:center;margin-top:0.5rem;flex-wrap:wrap}
-.lb-btn{padding:8px 18px;border:1px solid rgba(232,185,152,0.2);color:var(--gold2);background:none;cursor:pointer;font-size:11.5px;letter-spacing:0.08em;transition:all 0.2s}
-.lb-btn:hover{background:rgba(232,185,152,0.1)}
-.lb-btn.favorited{color:var(--rose);border-color:var(--rose)}
-.film-modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(74,51,40,0.97);align-items:center;justify-content:center;padding:1rem;flex-direction:column;gap:1rem}
+.lb-close{position:absolute;top:.9rem;right:.9rem;width:38px;height:38px;background:none;border:1px solid rgba(232,185,152,.18);color:var(--blush);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lb-close:hover{background:rgba(232,185,152,.08)}
+.lb-media{max-width:800px;width:100%;max-height:60vh;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.03);border:1px solid rgba(232,185,152,.1)}
+.lb-media img{max-width:100%;max-height:60vh;object-fit:contain}
+.lb-meta{text-align:center}
+.lb-title{font-family:'Playfair Display',serif;font-size:clamp(16px,2.5vw,20px);color:var(--gold2);margin-bottom:2px}
+.lb-info{font-size:11.5px;color:rgba(232,185,152,.4)}
+.lb-counter{font-size:10.5px;color:rgba(232,185,152,.3);margin-top:3px}
+.lb-nav{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+.lb-btn{padding:7px 16px;border:1px solid rgba(232,185,152,.18);color:var(--gold2);background:none;cursor:pointer;font-size:11px;letter-spacing:.07em;transition:all .2s}
+.lb-btn:hover{background:rgba(232,185,152,.08)}.lb-btn.fav{color:var(--rose);border-color:var(--rose)}
+
+/* FILM MODAL */
+.film-modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(74,51,40,.97);align-items:center;justify-content:center;padding:1rem;flex-direction:column;gap:.9rem}
 .film-modal.open{display:flex}
-.film-modal-close{position:absolute;top:1rem;right:1rem;width:40px;height:40px;background:none;border:1px solid rgba(232,185,152,0.2);color:var(--blush);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.film-frame-wrap{width:100%;max-width:900px;aspect-ratio:16/9;background:#000}
-.film-frame-wrap iframe{width:100%;height:100%;border:none}
-.film-modal-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold2);text-align:center}
-.modal-overlay{display:none;position:fixed;inset:0;z-index:950;background:rgba(74,51,40,0.5);align-items:center;justify-content:center;padding:1rem}
-.modal-overlay.open{display:flex}
-.modal{background:var(--cream);max-width:540px;width:100%;padding:0;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease}
-.modal-header{padding:1.3rem 1.5rem;background:var(--mocha2);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
-.modal-title{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold2)}
-.modal-close{background:none;border:none;color:rgba(232,185,152,0.5);font-size:19px;cursor:pointer;flex-shrink:0}
-.modal-close:hover{color:var(--gold2)}
-.modal-body{padding:1.5rem}
-.selfie-zone{border:2px dashed var(--border2);padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;display:flex;align-items:center;justify-content:center;min-height:140px}
-.selfie-zone:hover{border-color:var(--rose);background:rgba(184,117,88,0.04)}
-.selfie-zone img{max-height:120px;border-radius:4px;object-fit:cover}
-#selfieCanvas{display:none}
-.camera-controls{display:flex;gap:0.6rem;margin-bottom:1rem}
-.cam-btn{flex:1;padding:9px;border:1px solid var(--border2);background:var(--white);color:var(--text2);font-size:11.5px;letter-spacing:0.06em;cursor:pointer;transition:all 0.2s}
-.cam-btn:hover{border-color:var(--rose);color:var(--rose)}
-.cam-btn.active{border-color:var(--rose);background:rgba(184,117,88,0.06);color:var(--rose)}
-.face-result-grid{columns:3;gap:5px;column-fill:balance;margin-top:1rem}
-.face-result-item{break-inside:avoid;margin-bottom:5px;position:relative;border:2px solid var(--success);border-radius:2px;overflow:hidden;cursor:pointer}
-.face-result-item img{width:100%;display:block}
-.face-match-pct{position:absolute;bottom:4px;right:4px;background:rgba(74,122,74,0.85);color:white;font-size:9.5px;padding:2px 6px;border-radius:2px}
-.fs-progress-wrap{height:4px;background:var(--cream3);overflow:hidden;margin-top:0.85rem}
-.fs-progress-fill{height:100%;background:var(--rose);width:0%;transition:width 0.2s}
-@media(max-width:760px){.lock-wrap{grid-template-columns:1fr}.lock-visual{min-height:200px}.g-masonry{columns:2}}
+.fm-close{position:absolute;top:.9rem;right:.9rem;width:38px;height:38px;background:none;border:1px solid rgba(232,185,152,.18);color:var(--blush);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fm-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--gold2);text-align:center}
+.fm-frame{width:100%;max-width:880px;aspect-ratio:16/9;background:#000}
+.fm-frame iframe{width:100%;height:100%;border:none}
+
+/* AI MODAL */
+.modal-bg{display:none;position:fixed;inset:0;z-index:950;background:rgba(74,51,40,.5);align-items:center;justify-content:center;padding:1rem}.modal-bg.open{display:flex}
+.modal{background:var(--cream);max-width:520px;width:100%;max-height:90vh;overflow-y:auto;animation:fadeUp .28s ease}
+.modal-hdr{padding:1.2rem 1.4rem;background:var(--mocha2);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold2)}
+.modal-x{background:none;border:none;color:rgba(232,185,152,.45);font-size:18px;cursor:pointer}
+.modal-body{padding:1.4rem}
+.cam-tabs{display:flex;gap:.5rem;margin-bottom:.9rem}
+.cam-tab{flex:1;padding:8px;border:1px solid var(--border2);background:var(--white);color:var(--text2);font-size:11.5px;cursor:pointer;transition:all .2s}
+.cam-tab.active{border-color:var(--rose);color:var(--rose);background:rgba(184,117,88,.05)}
+.selfie-zone{border:2px dashed var(--border2);padding:1.4rem;text-align:center;cursor:pointer;transition:all .28s;margin-bottom:.9rem;display:flex;align-items:center;justify-content:center;min-height:130px;flex-direction:column;gap:.5rem}
+.selfie-zone:hover{border-color:var(--rose);background:rgba(184,117,88,.03)}
+.selfie-zone img{max-height:110px;border-radius:4px;object-fit:cover}
+.ai-prog{height:4px;background:var(--cream3);overflow:hidden;margin-top:.75rem;display:none}
+.ai-prog-fill{height:100%;background:var(--rose);width:0%;transition:width .18s}
+.ai-status{font-size:12px;color:var(--text3);text-align:center;margin-top:.65rem}
+.match-grid{columns:3;gap:5px;column-fill:balance;margin-top:.9rem}
+.match-item{break-inside:avoid;margin-bottom:5px;position:relative;border:2px solid var(--success);border-radius:2px;overflow:hidden;cursor:pointer}
+.match-item img{width:100%;display:block}
+.match-pct{position:absolute;bottom:3px;right:3px;background:rgba(74,122,74,.85);color:white;font-size:9px;padding:2px 5px;border-radius:2px}
+
+@media(max-width:720px){.lock-wrap{grid-template-columns:1fr}.lock-visual{min-height:190px}.g-masonry{columns:2}}
 @media(max-width:480px){.g-masonry{columns:1}}
 </style>
-<script type="module" src="firebase-init.js"></script>
 </head>
 <body>
-
 <div class="toast-wrap" id="toastWrap"></div>
 
-<div class="view active" id="view-lock">
+<div class="view active" id="v-load">
+  <div class="load-wrap"><div class="load-spinner"></div><div class="load-text">Loading your gallery...</div></div>
+</div>
+
+<div class="view" id="v-lock">
   <div class="lock-wrap">
     <div class="lock-visual" id="lockVisual">
-      <div class="lock-visual-overlay"></div>
+      <div class="lock-overlay"></div>
       <div class="lock-content">
-        <div class="lock-couple" id="lockCouple">Rohan &amp; <em>Priya</em></div>
-        <div class="lock-subtitle" id="lockSubtitle">A Udaipur Love Story</div>
-        <div class="lock-date" id="lockDate">March 15, 2025 · Udaipur</div>
+        <div class="lock-names" id="lockNames">Your &amp; <em>Gallery</em></div>
+        <div class="lock-subtitle" id="lockSub"></div>
+        <div class="lock-date" id="lockDate"></div>
       </div>
     </div>
     <div class="lock-right">
       <div class="lock-box">
-        <div class="lock-studio-row">
-          <div class="lock-studio-logo" id="lockStudioLogo">K</div>
-          <div><div class="lock-studio-label">Delivered by</div><div class="lock-studio-name" id="lockStudioName">KrunalFilms</div></div>
-        </div>
+        <div class="studio-row"><div class="studio-icon" id="lockIcon">K</div><div><div class="studio-by">Delivered by</div><div class="studio-nm" id="lockStudio">FrameStudio</div></div></div>
         <h2 class="lock-title">Your private gallery</h2>
-        <p class="lock-sub">This gallery is just for you. Enter the password your photographer shared to view your photos and films.</p>
+        <p class="lock-sub">This gallery is just for you. Enter the password your photographer shared.</p>
         <div class="form-row">
           <label class="form-label">Gallery password</label>
-          <input class="form-input" type="password" id="lockPwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')submitPassword()">
-          <div class="pw-err" id="lockPwErr">Incorrect password — please check with your photographer.</div>
+          <input class="form-input" type="password" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPw()">
+          <div class="pw-err" id="pwErr">Incorrect password — check with your photographer.</div>
         </div>
-        <button class="form-submit" onclick="submitPassword()">Open my gallery</button>
-        <p class="lock-hint">No account needed — just the password.<br><strong>Lost it?</strong> Contact your photographer directly.</p>
+        <button class="form-submit" onclick="checkPw()">Open my gallery</button>
+        <p class="lock-hint">No account needed — just the password.<br><strong>Lost it?</strong> Contact your photographer.</p>
       </div>
     </div>
   </div>
 </div>
 
-<div class="view" id="view-gate">
+<div class="view" id="v-gate">
   <div class="gate-wrap">
     <div class="gate-box">
       <div class="gate-icon">💍</div>
@@ -234,696 +249,482 @@ img{display:block;max-width:100%}
   </div>
 </div>
 
-<div class="view" id="view-gallery">
+<div class="view" id="v-gallery">
   <nav class="g-nav">
     <div class="g-nav-brand">
-      <div class="g-nav-logo" id="navStudioLogo">K</div>
-      <div class="g-nav-studio" id="navStudioName">KrunalFilms</div>
+      <div class="g-nav-icon" id="navIcon">K</div>
+      <div class="g-nav-nm" id="navStudio">KrunalFilms</div>
     </div>
-    <div class="g-nav-actions">
-      <button class="g-icon-btn" onclick="openFaceSearchModal()" title="Find my photos">Find me</button>
-      <button class="g-icon-btn" onclick="shareGalleryLink()" title="Share">Share</button>
+    <div class="g-nav-acts">
+      <button class="g-icon-btn" onclick="openAI()">AI Find me</button>
+      <button class="g-icon-btn" onclick="shareGallery()">Share</button>
     </div>
   </nav>
 
   <div class="g-hero">
     <div class="g-hero-orb"></div>
     <div class="g-hero-inner">
-      <div class="g-hero-eyebrow">Your private gallery</div>
-      <h1 class="g-hero-names" id="gHeroNames">Rohan &amp; <em>Priya</em></h1>
-      <div class="g-hero-subtitle" id="gHeroSubtitle">A Udaipur Love Story</div>
-      <div class="g-hero-dateloc" id="gHeroDateLoc">March 15, 2025 · Udaipur, Rajasthan</div>
-      <div class="g-hero-actions">
-        <button class="g-btn primary" id="downloadAllBtn" onclick="downloadAll()">Download all photos</button>
-        <button class="g-btn" onclick="shareGalleryLink()">Share gallery</button>
-        <button class="g-btn" onclick="openFaceSearchModal()">Find my photos</button>
+      <div class="g-hero-eye">Your private gallery</div>
+      <h1 class="g-hero-names" id="heroNames">Your &amp; <em>Gallery</em></h1>
+      <div class="g-hero-sub" id="heroSub"></div>
+      <div class="g-hero-loc" id="heroLoc"></div>
+      <div class="g-hero-acts">
+        <button class="g-btn primary" id="dlAllBtn" onclick="downloadAll()">Download all photos</button>
+        <button class="g-btn" onclick="shareGallery()">Share gallery</button>
+        <button class="g-btn" onclick="openAI()">Find my photos</button>
       </div>
     </div>
   </div>
 
   <div class="g-stats">
-    <div class="g-stat"><div class="g-stat-num" id="gStatPhotos">0</div><div class="g-stat-lbl">Photos</div></div>
-    <div class="g-stat"><div class="g-stat-num" id="gStatFilms">0</div><div class="g-stat-lbl">Films</div></div>
-    <div class="g-stat"><div class="g-stat-num" id="gLikeCount">0</div><div class="g-stat-lbl">Your likes</div></div>
-    <div class="g-stat"><div class="g-stat-num">Unlimited</div><div class="g-stat-lbl">Downloads</div></div>
+    <div class="g-stat"><div class="g-stat-n" id="stPhotos">0</div><div class="g-stat-l">Photos</div></div>
+    <div class="g-stat"><div class="g-stat-n" id="stFilms">0</div><div class="g-stat-l">Films</div></div>
+    <div class="g-stat"><div class="g-stat-n" id="stLikes">0</div><div class="g-stat-l">Your likes</div></div>
   </div>
 
   <div class="g-section">
-    <h2 class="g-section-title">Your <em>Photos</em></h2>
-    <p class="g-section-sub">Browse below, or use AI to instantly find every photo with you in it.</p>
-    <div class="face-search-bar">
-      <div class="face-search-text">
-        <div class="face-search-title">Find your own photos with AI</div>
-        <div class="face-search-sub">Upload a selfie — real face detection runs right in your browser</div>
+    <h2 class="g-sec-h">Your <em>Photos</em></h2>
+    <p class="g-sec-sub">Browse below, or use AI to find every photo with you in it.</p>
+    <div class="ai-bar">
+      <div class="ai-texts">
+        <div class="ai-title">Find your own photos with AI</div>
+        <div class="ai-sub">Upload a selfie — real face detection runs in your browser, nothing is uploaded</div>
       </div>
-      <span class="face-search-status-pill loading" id="aiStatusPill"><span class="spin-dot"></span> Loading AI models...</span>
-      <button class="g-btn primary" style="padding:8px 18px;font-size:11px" onclick="openFaceSearchModal()">Try it</button>
+      <span class="ai-pill loading" id="aiPill"><span class="spin-sm"></span> Loading AI...</span>
+      <button class="g-btn primary" style="padding:7px 16px;font-size:11px" onclick="openAI()">Try it</button>
     </div>
-    <div class="g-filter" id="gFilterTabs"></div>
-    <div class="g-masonry" id="gPhotoGrid"></div>
+    <div class="g-masonry" id="photoGrid"></div>
   </div>
 
   <div style="border-top:1px solid var(--border)"></div>
-
   <div class="g-section" id="filmsSection">
-    <h2 class="g-section-title">Your <em>Films</em></h2>
-    <p class="g-section-sub">Click any film to watch — plays right here, no redirect.</p>
-    <div class="g-films-grid" id="gFilmsGrid"></div>
+    <h2 class="g-sec-h">Your <em>Films</em></h2>
+    <p class="g-sec-sub">Click any film to watch — plays right here, no redirect.</p>
+    <div class="films-grid" id="filmsGrid"></div>
   </div>
 
   <div class="studio-card">
     <div class="studio-card-inner">
-      <div class="studio-card-logo" id="studioCardLogo">K</div>
-      <div class="studio-card-name" id="studioCardName">KrunalFilms</div>
-      <p class="studio-card-about" id="studioCardAbout">Wedding storytelling, captured with heart.</p>
-      <div class="studio-card-contact">
-        <span id="studioCardPhone">+91 98765 43210</span>
-        <span id="studioCardEmail">hello@krunalfilms.in</span>
-      </div>
+      <div class="sc-logo" id="scIcon">K</div>
+      <div class="sc-name" id="scName">KrunalFilms</div>
+      <p class="sc-about" id="scAbout"></p>
+      <div class="sc-contact"><span id="scPhone"></span><span id="scEmail"></span></div>
     </div>
   </div>
-
-  <div class="g-footer">
-    <div class="g-footer-brand">Delivered beautifully by <em>FrameStudio</em></div>
-  </div>
+  <div class="g-footer"><div class="g-footer-brand">Delivered beautifully by <em>FrameStudio</em></div></div>
 </div>
 
-<div class="lb" id="lightbox" onclick="if(event.target===this)closeLB()">
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="if(event.target===this)closeLB()">
   <button class="lb-close" onclick="closeLB()">✕</button>
   <div class="lb-media" id="lbMedia"></div>
-  <div class="lb-meta-row">
-    <div class="lb-title-text" id="lbTitle">Photo</div>
-    <div class="lb-meta-text" id="lbMeta">Album</div>
-    <div class="lb-counter" id="lbCounter">1 / 9</div>
+  <div class="lb-meta">
+    <div class="lb-title" id="lbTitle"></div>
+    <div class="lb-info" id="lbInfo"></div>
+    <div class="lb-counter" id="lbCounter"></div>
   </div>
   <div class="lb-nav">
-    <button class="lb-btn" onclick="lbNav(-1)">Prev</button>
-    <button class="lb-btn" id="lbLikeBtn" onclick="lbToggleLike()">Like</button>
-    <button class="lb-btn" onclick="lbDownload()">Download</button>
-    <button class="lb-btn" onclick="lbNav(1)">Next</button>
+    <button class="lb-btn" onclick="lbNav(-1)">← Prev</button>
+    <button class="lb-btn" id="lbLike" onclick="lbLikeToggle()">Like</button>
+    <button class="lb-btn" onclick="lbDl()">Download</button>
+    <button class="lb-btn" onclick="lbNav(1)">Next →</button>
   </div>
 </div>
 
+<!-- FILM MODAL -->
 <div class="film-modal" id="filmModal">
-  <button class="film-modal-close" onclick="closeFilmModal()">✕</button>
-  <div class="film-modal-title" id="filmModalTitle">Film</div>
-  <div class="film-frame-wrap"><iframe id="filmFrame" src="" allow="autoplay;encrypted-media" allowfullscreen></iframe></div>
+  <button class="fm-close" onclick="closeFilm()">✕</button>
+  <div class="fm-title" id="fmTitle"></div>
+  <div class="fm-frame"><iframe id="fmFrame" src="" allow="autoplay;encrypted-media" allowfullscreen></iframe></div>
 </div>
 
-<div class="modal-overlay" id="faceModal">
+<!-- AI MODAL -->
+<div class="modal-bg" id="aiModal">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header"><div class="modal-title">Find your photos — real AI</div><button class="modal-close" onclick="closeFaceModal()">✕</button></div>
+    <div class="modal-hdr"><div class="modal-title">Find your photos — real AI</div><button class="modal-x" onclick="closeAI()">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:12.5px;color:var(--text2);margin-bottom:1.1rem;line-height:1.7;font-weight:300">This uses a real face-detection model running entirely in your browser. Your selfie is never uploaded anywhere — everything happens on your device.</p>
-      <div class="camera-controls">
-        <button class="cam-btn active" id="camModeUpload" onclick="setSelfieMode('upload')">Upload photo</button>
-        <button class="cam-btn" id="camModeCamera" onclick="setSelfieMode('camera')">Use camera</button>
+      <p style="font-size:12.5px;color:var(--text2);margin-bottom:.9rem;line-height:1.7;font-weight:300">This uses a real face-detection model running entirely in your browser. Your selfie is never uploaded anywhere.</p>
+      <div class="cam-tabs">
+        <button class="cam-tab active" id="tabUpload" onclick="aiMode('upload')">Upload photo</button>
+        <button class="cam-tab" id="tabCam" onclick="aiMode('camera')">Use camera</button>
       </div>
-      <div class="selfie-zone" id="selfieZoneUpload" onclick="document.getElementById('faceSelfieInput').click()">
-        <input type="file" id="faceSelfieInput" accept="image/*" style="display:none" onchange="loadFaceSelfie(this)">
-        <div id="faceSelfiePreview"><div style="font-size:13px;color:var(--text3)">Click to upload your selfie</div></div>
+      <div class="selfie-zone" id="selfieUpload" onclick="document.getElementById('selfieFile').click()">
+        <input type="file" id="selfieFile" accept="image/*" style="display:none" onchange="loadSelfie(this)">
+        <div id="selfiePreview"><div style="font-size:13px;color:var(--text3)">Click to upload your selfie</div></div>
       </div>
-      <div class="selfie-zone" id="selfieZoneCamera" style="display:none;flex-direction:column;gap:0.6rem">
-        <video id="selfieVideo" autoplay playsinline style="display:block;max-width:100%;border-radius:4px;max-height:200px"></video>
-        <canvas id="selfieCanvas"></canvas>
-        <button class="g-btn primary" style="padding:8px 18px;font-size:11px" id="captureBtn" onclick="captureSelfie()">Capture</button>
+      <div class="selfie-zone" id="selfieCam" style="display:none">
+        <video id="camVideo" autoplay playsinline style="max-width:100%;max-height:180px;border-radius:3px"></video>
+        <canvas id="camCanvas" style="display:none"></canvas>
+        <button class="g-btn primary" style="padding:7px 16px;font-size:11px" onclick="captureSelfie()">Capture</button>
       </div>
-      <button class="g-btn primary" id="faceSearchBtn" onclick="runFaceSearch()" style="width:100%;text-align:center" disabled>Loading AI models...</button>
-      <div class="fs-progress-wrap" id="fsProgressWrap" style="display:none"><div class="fs-progress-fill" id="fsProgressFill"></div></div>
-      <div id="faceSearchStatus" style="font-size:12px;color:var(--text3);text-align:center;margin-top:0.75rem"></div>
-      <div id="faceResultGrid" class="face-result-grid"></div>
+      <button class="g-btn primary" id="aiSearchBtn" onclick="runAI()" style="width:100%;text-align:center" disabled>Loading AI models...</button>
+      <div class="ai-prog" id="aiProg"><div class="ai-prog-fill" id="aiProgFill"></div></div>
+      <div class="ai-status" id="aiStatus"></div>
+      <div class="match-grid" id="matchGrid"></div>
     </div>
   </div>
 </div>
 
 <script>
-function photoUrl(seed, w, h) {
-  return "https://images.unsplash.com/photo-" + seed + "?w=" + w + "&h=" + h + "&fit=crop&q=80";
-}
-
-var MOCK_GALLERIES = {
-  "rohan-priya-demo": {
-    coupleNames: "Rohan & Priya",
-    subtitle: "A Udaipur Love Story",
-    date: "March 15, 2025",
-    location: "Udaipur, Rajasthan",
-    access: "password",
-    password: "rp2025",
-    requireInfo: true,
-    studioName: "KrunalFilms",
-    studioAbout: "Wedding storytelling, captured with heart.",
-    studioPhone: "+91 98765 43210",
-    studioEmail: "hello@krunalfilms.in",
-    permissions: { download: true, downloadall: true, likes: true, share: true },
-    coverGradient: "linear-gradient(135deg,#e8d5c4,#c4a080)",
-    albums: [
-      { id: "ceremony", name: "Ceremony", photos: [
-        { url: photoUrl("1583939003579-730e3918a45a", 500, 650), h: 260 },
-        { url: photoUrl("1606800052052-a08af7148866", 500, 500), h: 195 },
-        { url: photoUrl("1519741497674-611481863552", 500, 600), h: 230 },
-        { url: photoUrl("1465495976277-4387d4b0b4c6", 500, 700), h: 310 },
-        { url: photoUrl("1606216794074-735e91aa2c92", 500, 480), h: 185 }
-      ]},
-      { id: "portraits", name: "Portraits", photos: [
-        { url: photoUrl("1537907510278-99b0c39e2b06", 500, 500), h: 190 },
-        { url: photoUrl("1525258506037-9c33d3eb6f6c", 500, 650), h: 250 },
-        { url: photoUrl("1583394293214-28a5b91bda5d", 500, 550), h: 210 },
-        { url: photoUrl("1610540508335-9c12d5a26d1f", 500, 470), h: 180 }
-      ]},
-      { id: "reception", name: "Reception", photos: [
-        { url: photoUrl("1511285560929-80b456fea0bc", 500, 520), h: 200 },
-        { url: photoUrl("1505236858219-8359eb29e329", 500, 720), h: 280 },
-        { url: photoUrl("1521543387317-7eb89db48bb2", 500, 490), h: 190 },
-        { url: photoUrl("1530023367847-a683933f4172", 500, 650), h: 250 },
-        { url: photoUrl("1542126884-bb18b4dc3f93", 500, 540), h: 210 }
-      ]}
-    ],
-    films: [
-      { title: "Wedding Highlight Film", duration: "4 min 12 sec", type: "YouTube · Unlisted", embed: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0" },
-      { title: "Full Ceremony Film", duration: "18 min 40 sec", type: "Vimeo", embed: "https://player.vimeo.com/video/76979871?autoplay=1" }
-    ]
-  }
-};
-
-var currentGallery = null;
-var currentStudioId = null;
-var currentGalleryDocId = null;
-var visitorInfo = null;
+var gallery = null;
+var studioData = null;
+var studioId = null;
 var likedPhotos = new Set();
 var lbItems = [];
-var lbIndex = 0;
+var lbIdx = 0;
 var selfieImg = null;
-var selfieMode = "upload";
-var cameraStream = null;
-var modelsReady = false;
-
-function showToast(msg, type) {
-  type = type || "info";
-  var wrap = document.getElementById("toastWrap");
-  var t = document.createElement("div");
-  t.className = "toast " + type;
-  t.innerHTML = "<span>" + msg + "</span>";
-  wrap.appendChild(t);
-  setTimeout(function () {
-    t.style.transition = "all 0.3s";
-    t.style.opacity = "0";
-    setTimeout(function () { t.remove(); }, 300);
-  }, 3000);
-}
+var camStream = null;
+var aiReady = false;
+var AI_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
 
 function showView(id) {
-  document.querySelectorAll(".view").forEach(function (v) { v.classList.remove("active"); });
-  document.getElementById("view-" + id).classList.add("active");
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
 }
 
-async function loadGalleryFromURL() {
+function toast(msg, type) {
+  var wrap = document.getElementById('toastWrap');
+  var t = document.createElement('div');
+  t.className = 'toast' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
+  t.innerHTML = '<span>' + msg + '</span>';
+  wrap.appendChild(t);
+  setTimeout(function() { t.style.transition = 'all .3s'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 3000);
+}
+
+// ── LOAD GALLERY ──
+function waitForFS(cb) {
+  var t = setInterval(function() {
+    if (window.FS) { clearInterval(t); cb(); }
+  }, 80);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
   var params = new URLSearchParams(window.location.search);
-  var shareId = params.get("gallery");
+  var shareId = params.get('gallery');
   if (!shareId) {
-    document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>No gallery specified</h2><p style='color:#9a8070;margin-top:0.5rem'>This link is missing a gallery ID.</p></div>";
+    document.body.innerHTML = '<div style="padding:4rem;text-align:center;font-family:Jost,sans-serif"><h2 style="font-family:Playfair Display,serif;color:#6b4c38">No gallery specified</h2><p style="color:#9a8070;margin-top:.5rem">This link is missing a gallery ID.</p></div>';
     return;
   }
-
-  var waitForFirebase = setInterval(async function () {
-    if (!window.FrameStudioFirebase) return;
-    clearInterval(waitForFirebase);
-
-    try {
-      var result = await window.FrameStudioFirebase.findGalleryByShareId(shareId);
+  waitForFS(function() {
+    window.FS.findByShareId(shareId).then(function(result) {
       if (!result) {
-        document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>Gallery not found</h2><p style='color:#9a8070;margin-top:0.5rem'>This link may be incorrect or expired.</p></div>";
+        document.body.innerHTML = '<div style="padding:4rem;text-align:center;font-family:Jost,sans-serif"><h2 style="font-family:Playfair Display,serif;color:#6b4c38">Gallery not found</h2><p style="color:#9a8070;margin-top:.5rem">This link may be incorrect or expired.</p></div>';
         return;
       }
+      gallery = result.gallery;
+      studioData = result.studio;
+      studioId = result.studioId;
+      populateLock();
+      if (gallery.access !== 'password') { unlock(); } else { showView('v-lock'); }
+    }).catch(function(err) {
+      console.error('Gallery load error:', err);
+      document.body.innerHTML = '<div style="padding:4rem;text-align:center;font-family:Jost,sans-serif"><h2 style="font-family:Playfair Display,serif;color:#6b4c38">Could not load gallery</h2><p style="color:#9a8070;margin-top:.5rem">Please try again or contact your photographer.</p></div>';
+    });
+  });
+  document.querySelectorAll('.modal-bg').forEach(function(m) { m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeLB(); closeFilm(); closeAI(); } if (document.getElementById('lb').classList.contains('open')) { if (e.key === 'ArrowLeft') lbNav(-1); if (e.key === 'ArrowRight') lbNav(1); } });
+});
 
-      var gallery = result.gallery;
-      var studio = result.studio;
-
-      currentGallery = {
-        coupleNames: gallery.coupleNames,
-        subtitle: gallery.title || "",
-        date: gallery.date || "",
-        location: gallery.location || "",
-        access: gallery.access || "password",
-        password: gallery.password,
-        requireInfo: gallery.permissions ? gallery.permissions.requireinfo : true,
-        studioName: studio.studio || "FrameStudio",
-        studioAbout: studio.about || "Wedding storytelling, captured with heart.",
-        studioPhone: studio.phone || "",
-        studioEmail: studio.email || "",
-        permissions: gallery.permissions || { download: true, downloadall: true, likes: true, share: true },
-        coverGradient: gallery.coverGradient || "linear-gradient(135deg,#e8d5c4,#c4a080)",
-        photos: gallery.photos || [],
-        videos: gallery.videos || []
-      };
-      currentStudioId = result.studioId;
-      currentGalleryDocId = gallery.id;
-
-      document.getElementById("lockCouple").innerHTML = currentGallery.coupleNames.replace(" & ", " &amp; <em>") + "</em>";
-      document.getElementById("lockSubtitle").textContent = currentGallery.subtitle;
-      document.getElementById("lockDate").textContent = currentGallery.date + " · " + currentGallery.location;
-      document.getElementById("lockVisual").style.background = currentGallery.coverGradient;
-      document.getElementById("lockStudioLogo").textContent = currentGallery.studioName.charAt(0);
-      document.getElementById("lockStudioName").textContent = currentGallery.studioName;
-      if (currentGallery.access !== "password") {
-        unlockGallery();
-      }
-    } catch (err) {
-      console.error("Failed to load gallery:", err);
-      document.body.innerHTML = "<div style='padding:4rem;text-align:center;font-family:Jost,sans-serif'><h2>Could not load gallery</h2><p style='color:#9a8070;margin-top:0.5rem'>Please check the link and try again.</p></div>";
-    }
-  }, 100);
+function populateLock() {
+  var names = gallery.coupleNames || 'Your Gallery';
+  document.getElementById('lockNames').innerHTML = names.replace(' & ', ' &amp; <em>') + '</em>';
+  document.getElementById('lockSub').textContent = gallery.title || '';
+  document.getElementById('lockDate').textContent = (gallery.date || '') + (gallery.location ? ' · ' + gallery.location : '');
+  document.getElementById('lockVisual').style.background = gallery.coverGradient || 'linear-gradient(135deg,#e8d5c4,#c4a080)';
+  document.getElementById('lockIcon').textContent = (studioData.studio || 'K').charAt(0);
+  document.getElementById('lockStudio').textContent = studioData.studio || 'FrameStudio';
 }
 
-function submitPassword() {
-  var entered = document.getElementById("lockPwInput").value.trim();
-  if (!currentGallery) return;
-  if (entered === currentGallery.password) {
-    unlockGallery();
+function checkPw() {
+  var entered = document.getElementById('pwInput').value.trim();
+  if (entered === gallery.password) {
+    unlock();
   } else {
-    document.getElementById("lockPwErr").style.display = "block";
-    document.getElementById("lockPwInput").classList.add("error");
-    setTimeout(function () { document.getElementById("lockPwInput").classList.remove("error"); }, 420);
+    document.getElementById('pwErr').style.display = 'block';
+    document.getElementById('pwInput').classList.add('err');
+    setTimeout(function() { document.getElementById('pwInput').classList.remove('err'); }, 420);
   }
 }
 
-function unlockGallery() {
-  if (currentGallery.requireInfo) {
-    showView("gate");
-  } else {
-    enterGallery();
-  }
+function unlock() {
+  var perms = gallery.permissions || {};
+  if (perms.requireinfo) { showView('v-gate'); } else { enterGallery(); }
 }
 
 function submitGate() {
-  var name = document.getElementById("gateName").value.trim();
-  var email = document.getElementById("gateEmail").value.trim();
-  if (!name || !email) { showToast("Please enter your name and email", "error"); return; }
-  visitorInfo = { name: name, email: email };
+  var name = document.getElementById('gateName').value.trim();
+  var email = document.getElementById('gateEmail').value.trim();
+  if (!name || !email) { toast('Please enter your name and email', 'err'); return; }
   enterGallery();
-  showToast("Welcome, " + name.split(" ")[0], "success");
+  toast('Welcome, ' + name.split(' ')[0] + ' ✦', 'ok');
 }
 
 function enterGallery() {
-  renderGallery(currentGallery);
-  showView("gallery");
+  renderGallery();
+  showView('v-gallery');
+  loadAIModels();
 }
 
-function renderGallery(g) {
-  document.getElementById("gHeroNames").innerHTML = g.coupleNames.replace(" & ", " &amp; <em>") + "</em>";
-  document.getElementById("gHeroSubtitle").textContent = g.subtitle;
-  document.getElementById("gHeroDateLoc").textContent = g.date + " · " + g.location;
-  document.getElementById("navStudioLogo").textContent = g.studioName.charAt(0);
-  document.getElementById("navStudioName").textContent = g.studioName;
-  document.getElementById("studioCardLogo").textContent = g.studioName.charAt(0);
-  document.getElementById("studioCardName").textContent = g.studioName;
-  document.getElementById("studioCardAbout").textContent = g.studioAbout;
-  document.getElementById("studioCardPhone").textContent = g.studioPhone;
-  document.getElementById("studioCardEmail").textContent = g.studioEmail;
+// ── RENDER ──
+function renderGallery() {
+  var names = gallery.coupleNames || '';
+  document.getElementById('heroNames').innerHTML = names.replace(' & ', ' &amp; <em>') + '</em>';
+  document.getElementById('heroSub').textContent = gallery.title || '';
+  document.getElementById('heroLoc').textContent = (gallery.date || '') + (gallery.location ? ' · ' + gallery.location : '');
+  document.getElementById('navIcon').textContent = (studioData.studio || 'K').charAt(0);
+  document.getElementById('navStudio').textContent = studioData.studio || 'FrameStudio';
+  document.getElementById('scIcon').textContent = (studioData.studio || 'K').charAt(0);
+  document.getElementById('scName').textContent = studioData.studio || 'FrameStudio';
+  document.getElementById('scAbout').textContent = studioData.about || '';
+  document.getElementById('scPhone').textContent = studioData.phone ? '📞 ' + studioData.phone : '';
+  document.getElementById('scEmail').textContent = studioData.email ? '✉ ' + studioData.email : '';
 
-  document.getElementById("gStatPhotos").textContent = g.photos.length;
-  document.getElementById("gStatFilms").textContent = g.videos.length;
-  document.getElementById("gLikeCount").textContent = likedPhotos.size;
-  document.getElementById("downloadAllBtn").style.display = g.permissions.downloadall ? "inline-flex" : "none";
+  var photos = gallery.photos || [];
+  var videos = gallery.videos || [];
+  var perms = gallery.permissions || {};
 
-  document.getElementById("gFilterTabs").innerHTML = "";
-  showAlbum(null, null);
+  document.getElementById('stPhotos').textContent = photos.length;
+  document.getElementById('stFilms').textContent = videos.length;
+  document.getElementById('stLikes').textContent = likedPhotos.size;
+  document.getElementById('dlAllBtn').style.display = 'inline-flex';
 
-  var filmsGrid = document.getElementById("gFilmsGrid");
-  if (!g.videos.length) {
-    document.getElementById("filmsSection").style.display = "none";
-  } else {
-    var filmsHtml = "";
-    g.videos.forEach(function (f, i) {
-      filmsHtml += '<div class="g-film-card" onclick="playFilm(' + i + ')"><div class="g-film-thumb"><div class="g-play-ring"><div class="g-play-tri"></div></div></div><div class="g-film-info"><div class="g-film-title">' + (f.name || "Film " + (i + 1)) + '</div></div></div>';
-    });
-    filmsGrid.innerHTML = filmsHtml;
-  }
-
-  if (g.photos.length === 0) {
-    document.getElementById("gPhotoGrid").innerHTML = "<div style='padding:2rem;text-align:center;color:var(--text4);font-size:13px;grid-column:1/-1'>No photos uploaded yet. Check back soon.</div>";
-  }
-
-  loadFaceApiModels();
-}
-
-function showAlbum(albumId, btn) {
-  if (btn) {
-    document.querySelectorAll("#gFilterTabs .filter-btn").forEach(function (b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-  }
-  var grid = document.getElementById("gPhotoGrid");
+  // Build photo grid
   lbItems = [];
-  var html = "";
-  currentGallery.photos.forEach(function (p, i) {
-    var idx = lbItems.length;
-    var photoId = "photo-" + i;
-    var url = p.url || p.directLink || "";
-    lbItems.push({ title: p.name || ("Photo " + (i + 1)), album: "", id: photoId, url: url });
-    html += '<div class="g-brick" onclick="openLB(' + idx + ')">'
-      + '<img class="g-brick-img" src="' + url + '" loading="lazy" style="height:220px">'
-      + '<div class="g-brick-overlay"></div>'
-      + '<div class="g-brick-actions">'
-      + (currentGallery.permissions.likes ? '<button class="g-brick-btn ' + (likedPhotos.has(photoId) ? "favorited" : "") + '" onclick="event.stopPropagation();toggleLike(\'' + photoId + '\',this)">' + (likedPhotos.has(photoId) ? "&hearts;" : "&#9825;") + '</button>' : "")
-      + (currentGallery.permissions.download ? '<button class="g-brick-btn" onclick="event.stopPropagation();downloadPhoto(\'' + photoId + '\',\'' + url + '\')">&#8595;</button>' : "")
-      + '</div>'
-      + '</div>';
-  });
-  if (currentGallery.photos.length > 0) grid.innerHTML = html;
-}
-
-function toggleLike(photoId, btn) {
-  if (likedPhotos.has(photoId)) {
-    likedPhotos.delete(photoId);
-    btn.classList.remove("favorited");
-    btn.innerHTML = "&#9825;";
+  var gridHtml = '';
+  if (!photos.length) {
+    gridHtml = '<div style="color:var(--text4);font-size:13px;padding:1.5rem;grid-column:1/-1">No photos in this gallery yet.</div>';
   } else {
-    likedPhotos.add(photoId);
-    btn.classList.add("favorited");
-    btn.innerHTML = "&hearts;";
-    showToast("Added to favourites", "info");
+    photos.forEach(function(p, i) {
+      var idx = lbItems.length;
+      var id = 'p' + i;
+      lbItems.push({ id: id, title: p.name || 'Photo ' + (i + 1), url: p.url || '' });
+      var h = 180 + Math.floor(Math.random() * 140);
+      gridHtml += '<div class="g-brick" onclick="openLB(' + idx + ')">'
+        + '<img class="g-brick-img" src="' + (p.url || '') + '" loading="lazy" style="height:' + h + 'px" onerror="this.style.height=\'120px\';this.style.background=\'var(--cream3)\'">'
+        + '<div class="g-brick-ov"></div>'
+        + '<div class="g-brick-acts">'
+        + (perms.likes !== false ? '<button class="g-brick-btn ' + (likedPhotos.has(id) ? 'fav' : '') + '" onclick="event.stopPropagation();toggleLike(\'' + id + '\',this,\'' + (p.url || '') + '\')">' + (likedPhotos.has(id) ? '♥' : '♡') + '</button>' : '')
+        + (perms.download !== false ? '<button class="g-brick-btn" onclick="event.stopPropagation();dlPhoto(\'' + (p.url || '') + '\',\'' + (p.name || 'photo') + '\')">⬇</button>' : '')
+        + '</div></div>';
+    });
   }
-  document.getElementById("gLikeCount").textContent = likedPhotos.size;
+  document.getElementById('photoGrid').innerHTML = gridHtml;
+
+  // Films
+  if (!videos.length) {
+    document.getElementById('filmsSection').style.display = 'none';
+  } else {
+    document.getElementById('filmsSection').style.display = 'block';
+    var fHtml = '';
+    videos.forEach(function(v, i) {
+      var badge = v.type || 'film';
+      fHtml += '<div class="film-card" onclick="playFilm(' + i + ')">'
+        + '<div class="film-thumb"><div class="play-ring"><div class="play-tri"></div></div><div class="film-badge">' + badge + '</div></div>'
+        + '<div class="film-body"><div class="film-title">' + (v.name || 'Film ' + (i + 1)) + '</div></div></div>';
+    });
+    document.getElementById('filmsGrid').innerHTML = fHtml;
+  }
 }
 
-function downloadPhoto(photoId, url) {
-  if (!currentGallery.permissions.download) { showToast("Downloads are disabled for this gallery", "error"); return; }
-  var a = document.createElement("a");
-  a.href = url;
-  a.download = "photo-" + photoId + ".jpg";
-  a.target = "_blank";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  showToast("Downloading photo...", "success");
+function toggleLike(id, btn, url) {
+  if (likedPhotos.has(id)) { likedPhotos.delete(id); btn.classList.remove('fav'); btn.innerHTML = '♡'; }
+  else { likedPhotos.add(id); btn.classList.add('fav'); btn.innerHTML = '♥'; toast('Added to favourites ♥', ''); }
+  document.getElementById('stLikes').textContent = likedPhotos.size;
 }
 
-function downloadAll() {
-  if (!currentGallery.permissions.downloadall) { showToast("Bulk download is disabled for this gallery", "error"); return; }
-  showToast("Preparing ZIP of all photos from Drive...", "success");
+function dlPhoto(url, name) {
+  if (!url) { toast('No download link available', 'err'); return; }
+  var a = document.createElement('a');
+  a.href = url; a.download = name || 'photo.jpg'; a.target = '_blank';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('Downloading...', 'ok');
 }
 
-function shareGalleryLink() {
-  if (currentGallery && !currentGallery.permissions.share) { showToast("Sharing is disabled for this gallery", "error"); return; }
+function downloadAll() { toast('To download all photos, open each photo and use the download button, or visit your Drive folder link.', ''); }
+
+function shareGallery() {
   var link = window.location.href;
-  navigator.clipboard.writeText(link).then(function () {
-    showToast("Gallery link copied", "success");
-  }).catch(function () {
-    showToast("Link: " + link, "info");
-  });
+  navigator.clipboard.writeText(link).then(function() { toast('Gallery link copied ✦', 'ok'); }).catch(function() { toast('Link: ' + link, ''); });
 }
 
+// ── LIGHTBOX ──
 function openLB(idx) {
-  lbIndex = idx;
+  lbIdx = idx;
   var item = lbItems[idx];
-  document.getElementById("lbMedia").innerHTML = '<img src="' + item.url + '">';
-  document.getElementById("lbTitle").textContent = item.title;
-  document.getElementById("lbMeta").textContent = item.album + " · " + currentGallery.coupleNames;
-  document.getElementById("lbCounter").textContent = (idx + 1) + " / " + lbItems.length;
-  var likeBtn = document.getElementById("lbLikeBtn");
-  likeBtn.style.display = currentGallery.permissions.likes ? "inline-block" : "none";
-  likeBtn.classList.toggle("favorited", likedPhotos.has(item.id));
-  likeBtn.textContent = likedPhotos.has(item.id) ? "Liked" : "Like";
-  document.getElementById("lightbox").classList.add("open");
-  document.body.style.overflow = "hidden";
+  document.getElementById('lbMedia').innerHTML = item.url ? '<img src="' + item.url + '">' : '<div style="padding:2rem;color:rgba(232,185,152,.3);font-size:13px">Image not available</div>';
+  document.getElementById('lbTitle').textContent = item.title;
+  document.getElementById('lbInfo').textContent = (gallery ? gallery.coupleNames : '');
+  document.getElementById('lbCounter').textContent = (idx + 1) + ' / ' + lbItems.length;
+  var lb = document.getElementById('lbLike');
+  lb.classList.toggle('fav', likedPhotos.has(item.id));
+  lb.textContent = likedPhotos.has(item.id) ? 'Liked' : 'Like';
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
-
-function lbNav(dir) {
-  var next = lbIndex + dir;
-  if (next < 0 || next >= lbItems.length) return;
-  openLB(next);
+function lbNav(dir) { var n = lbIdx + dir; if (n >= 0 && n < lbItems.length) openLB(n); }
+function closeLB() { document.getElementById('lb').classList.remove('open'); document.body.style.overflow = ''; }
+function lbLikeToggle() {
+  var item = lbItems[lbIdx];
+  var btn = document.getElementById('lbLike');
+  if (likedPhotos.has(item.id)) { likedPhotos.delete(item.id); btn.classList.remove('fav'); btn.textContent = 'Like'; }
+  else { likedPhotos.add(item.id); btn.classList.add('fav'); btn.textContent = 'Liked'; toast('Added to favourites ♥', ''); }
+  document.getElementById('stLikes').textContent = likedPhotos.size;
 }
+function lbDl() { var item = lbItems[lbIdx]; dlPhoto(item.url, item.title); }
 
-function closeLB() {
-  document.getElementById("lightbox").classList.remove("open");
-  document.body.style.overflow = "";
-}
-
-function lbToggleLike() {
-  var item = lbItems[lbIndex];
-  var btn = document.getElementById("lbLikeBtn");
-  if (likedPhotos.has(item.id)) {
-    likedPhotos.delete(item.id);
-    btn.classList.remove("favorited");
-    btn.textContent = "Like";
-  } else {
-    likedPhotos.add(item.id);
-    btn.classList.add("favorited");
-    btn.textContent = "Liked";
-    showToast("Added to favourites", "info");
-  }
-  document.getElementById("gLikeCount").textContent = likedPhotos.size;
-}
-
-function lbDownload() {
-  var item = lbItems[lbIndex];
-  downloadPhoto(item.id, item.url);
-}
-
+// ── FILMS ──
 function playFilm(idx) {
-  var f = currentGallery.videos[idx];
-  document.getElementById("filmModalTitle").textContent = f.name || "Film";
-  var driveId = f.driveId;
-  var embedSrc = driveId ? ("https://drive.google.com/file/d/" + driveId + "/preview") : (f.url || "");
-  document.getElementById("filmFrame").src = embedSrc;
-  document.getElementById("filmModal").classList.add("open");
-  document.body.style.overflow = "hidden";
+  var v = (gallery.videos || [])[idx];
+  if (!v) return;
+  document.getElementById('fmTitle').textContent = v.name || 'Film';
+  var src = v.embed || '';
+  if (!src && v.driveId) src = 'https://drive.google.com/file/d/' + v.driveId + '/preview';
+  document.getElementById('fmFrame').src = src;
+  document.getElementById('filmModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
+function closeFilm() { document.getElementById('filmModal').classList.remove('open'); document.getElementById('fmFrame').src = ''; document.body.style.overflow = ''; }
 
-function closeFilmModal() {
-  document.getElementById("filmModal").classList.remove("open");
-  document.getElementById("filmFrame").src = "";
-  document.body.style.overflow = "";
-}
-
-var FACE_MODEL_URL = "https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights";
-
-function loadFaceApiModels() {
-  if (modelsReady) return;
-  if (typeof faceapi === "undefined") {
-    var pill = document.getElementById("aiStatusPill");
-    pill.innerHTML = "AI library failed to load";
-    return;
-  }
+// ── AI FACE SEARCH ──
+function loadAIModels() {
+  if (aiReady || typeof faceapi === 'undefined') return;
   Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
-    faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
-    faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
-  ]).then(function () {
-    modelsReady = true;
-    var pill = document.getElementById("aiStatusPill");
-    pill.className = "face-search-status-pill ready";
-    pill.innerHTML = "AI ready";
-    var btn = document.getElementById("faceSearchBtn");
-    if (btn) { btn.disabled = false; btn.textContent = "Find my photos"; }
-  }).catch(function (err) {
-    console.error("Face model load failed:", err);
-    var pill = document.getElementById("aiStatusPill");
-    pill.className = "face-search-status-pill loading";
-    pill.innerHTML = "AI unavailable right now";
+    faceapi.nets.tinyFaceDetector.loadFromUri(AI_MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(AI_MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(AI_MODEL_URL)
+  ]).then(function() {
+    aiReady = true;
+    var pill = document.getElementById('aiPill');
+    pill.className = 'ai-pill ready';
+    pill.innerHTML = '✦ AI ready';
+    var btn = document.getElementById('aiSearchBtn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Find my photos'; }
+  }).catch(function(err) {
+    console.error('AI load error:', err);
+    var pill = document.getElementById('aiPill');
+    pill.className = 'ai-pill loading';
+    pill.innerHTML = 'AI unavailable';
   });
 }
 
-function openFaceSearchModal() {
-  document.getElementById("faceModal").classList.add("open");
-  document.body.style.overflow = "hidden";
-  loadFaceApiModels();
-}
+function openAI() { document.getElementById('aiModal').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeAI() { document.getElementById('aiModal').classList.remove('open'); document.body.style.overflow = ''; stopCam(); }
 
-function closeFaceModal() {
-  document.getElementById("faceModal").classList.remove("open");
-  document.body.style.overflow = "";
-  stopCamera();
+function aiMode(mode) {
+  document.getElementById('tabUpload').classList.toggle('active', mode === 'upload');
+  document.getElementById('tabCam').classList.toggle('active', mode === 'camera');
+  document.getElementById('selfieUpload').style.display = mode === 'upload' ? 'flex' : 'none';
+  document.getElementById('selfieCam').style.display = mode === 'camera' ? 'flex' : 'none';
+  if (mode === 'camera') { startCam(); } else { stopCam(); }
 }
-
-function setSelfieMode(mode) {
-  selfieMode = mode;
-  document.getElementById("camModeUpload").classList.toggle("active", mode === "upload");
-  document.getElementById("camModeCamera").classList.toggle("active", mode === "camera");
-  document.getElementById("selfieZoneUpload").style.display = mode === "upload" ? "flex" : "none";
-  document.getElementById("selfieZoneCamera").style.display = mode === "camera" ? "flex" : "none";
-  if (mode === "camera") { startCamera(); } else { stopCamera(); }
+function startCam() {
+  if (!navigator.mediaDevices) { toast('Camera not supported', 'err'); aiMode('upload'); return; }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(function(stream) {
+    camStream = stream;
+    var v = document.getElementById('camVideo');
+    v.srcObject = stream; v.style.display = 'block';
+  }).catch(function() { toast('Camera access denied', 'err'); aiMode('upload'); });
 }
-
-function startCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    showToast("Camera not supported on this browser", "error");
-    setSelfieMode("upload");
-    return;
-  }
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }).then(function (stream) {
-    cameraStream = stream;
-    var video = document.getElementById("selfieVideo");
-    video.srcObject = stream;
-    video.style.display = "block";
-  }).catch(function () {
-    showToast("Could not access camera — try uploading a photo instead", "error");
-    setSelfieMode("upload");
-  });
-}
-
-function stopCamera() {
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(function (t) { t.stop(); });
-    cameraStream = null;
-  }
-}
-
+function stopCam() { if (camStream) { camStream.getTracks().forEach(function(t) { t.stop(); }); camStream = null; } }
 function captureSelfie() {
-  var video = document.getElementById("selfieVideo");
-  var canvas = document.getElementById("selfieCanvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
-  var dataUrl = canvas.toDataURL("image/jpeg");
-  setSelfieImage(dataUrl);
-  showToast("Selfie captured", "success");
+  var v = document.getElementById('camVideo');
+  var c = document.getElementById('camCanvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v, 0, 0);
+  loadSelfieData(c.toDataURL('image/jpeg'));
 }
-
-function loadFaceSelfie(input) {
+function loadSelfie(input) {
   if (!input.files || !input.files[0]) return;
-  var reader = new FileReader();
-  reader.onload = function (e) { setSelfieImage(e.target.result); };
-  reader.readAsDataURL(input.files[0]);
+  var r = new FileReader();
+  r.onload = function(e) { loadSelfieData(e.target.result); };
+  r.readAsDataURL(input.files[0]);
 }
-
-function setSelfieImage(dataUrl) {
+function loadSelfieData(dataUrl) {
   var img = new Image();
-  img.onload = function () {
+  img.onload = function() {
     selfieImg = img;
-    document.getElementById("faceSelfiePreview").innerHTML = '<img src="' + dataUrl + '" style="max-width:100%;max-height:110px;border-radius:4px;object-fit:cover">';
+    document.getElementById('selfiePreview').innerHTML = '<img src="' + dataUrl + '" style="max-height:110px;border-radius:3px;object-fit:cover">';
   };
   img.src = dataUrl;
 }
 
-function loadImageFromUrl(url) {
-  return new Promise(function (resolve, reject) {
+function loadImgFromUrl(url) {
+  return new Promise(function(res, rej) {
     var img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = function () { resolve(img); };
-    img.onerror = function () { reject(new Error("Failed to load " + url)); };
+    img.crossOrigin = 'anonymous';
+    img.onload = function() { res(img); };
+    img.onerror = function() { rej(new Error('Failed: ' + url)); };
     img.src = url;
   });
 }
 
-function runFaceSearch() {
-  if (!modelsReady) { showToast("AI is still loading, please wait a moment", "info"); return; }
-  if (!selfieImg) { showToast("Please provide a selfie first", "error"); return; }
+function runAI() {
+  if (!aiReady) { toast('AI still loading, please wait', ''); return; }
+  if (!selfieImg) { toast('Please provide a selfie first', 'err'); return; }
+  var btn = document.getElementById('aiSearchBtn');
+  var status = document.getElementById('aiStatus');
+  var prog = document.getElementById('aiProg');
+  var fill = document.getElementById('aiProgFill');
+  btn.disabled = true; btn.textContent = 'Detecting your face...';
+  prog.style.display = 'block'; fill.style.width = '5%';
+  status.textContent = '';
+  document.getElementById('matchGrid').innerHTML = '';
 
-  var btn = document.getElementById("faceSearchBtn");
-  var status = document.getElementById("faceSearchStatus");
-  var progWrap = document.getElementById("fsProgressWrap");
-  var progFill = document.getElementById("fsProgressFill");
-  btn.disabled = true;
-  btn.textContent = "Detecting your face...";
-  status.textContent = "";
-  progWrap.style.display = "block";
-  progFill.style.width = "5%";
-  document.getElementById("faceResultGrid").innerHTML = "";
-
-  faceapi.detectSingleFace(selfieImg, new faceapi.TinyFaceDetectorOptions())
-    .withFaceLandmarks()
-    .withFaceDescriptor()
-    .then(function (selfieDetection) {
-      if (!selfieDetection) {
-        btn.disabled = false;
-        btn.textContent = "Find my photos";
-        progWrap.style.display = "none";
-        status.textContent = "No face detected in that photo — try a clearer, front-facing selfie.";
-        showToast("No face detected — try another photo", "error");
-        return null;
-      }
-      progFill.style.width = "15%";
-
-      var allPhotos = [];
-      currentGallery.albums.forEach(function (album) {
-        album.photos.forEach(function (p, i) {
-          allPhotos.push({ url: p.url, album: album.name, id: album.id + "-" + i });
-        });
-      });
-
-      btn.textContent = "Scanning gallery photos...";
-      var matches = [];
-      var threshold = 0.6;
-      var i = 0;
-
-      function scanNext() {
-        if (i >= allPhotos.length) {
-          progFill.style.width = "100%";
-          btn.disabled = false;
-          btn.textContent = "Find my photos";
-          if (!matches.length) {
-            status.textContent = "No matching photos found. Faces in crowd photos can be small or angled — try a clearer selfie, or browse manually.";
-            showToast("No matches found this time", "info");
-          } else {
-            matches.sort(function (a, b) { return b.pct - a.pct; });
-            status.textContent = "Found " + matches.length + " photo" + (matches.length === 1 ? "" : "s") + " with your face";
-            showFaceResults(matches);
-            showToast("Found " + matches.length + " photo(s) with your face", "success");
-          }
-          setTimeout(function () { progWrap.style.display = "none"; }, 800);
-          return;
-        }
-        status.textContent = "Scanning photo " + (i + 1) + " of " + allPhotos.length + "...";
-        progFill.style.width = (15 + ((i + 1) / allPhotos.length) * 75) + "%";
-
-        loadImageFromUrl(allPhotos[i].url).then(function (photoImg) {
-          return faceapi.detectAllFaces(photoImg, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-        }).then(function (detections) {
-          var bestDist = Infinity;
-          detections.forEach(function (d) {
-            var dist = faceapi.euclideanDistance(selfieDetection.descriptor, d.descriptor);
-            if (dist < bestDist) bestDist = dist;
-          });
-          if (bestDist < threshold) {
-            var pct = Math.round((1 - bestDist) * 100);
-            matches.push({ url: allPhotos[i].url, pct: pct, album: allPhotos[i].album });
-          }
-        }).catch(function (e) {
-          console.warn("Could not analyze photo", allPhotos[i].url, e);
-        }).then(function () {
-          i++;
-          scanNext();
-        });
-      }
-      scanNext();
+  faceapi.detectSingleFace(selfieImg, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor().then(function(det) {
+    if (!det) {
+      btn.disabled = false; btn.textContent = 'Find my photos';
+      prog.style.display = 'none';
+      status.textContent = 'No face detected — try a clearer, front-facing selfie.';
       return null;
-    })
-    .catch(function (err) {
-      console.error("Face search error:", err);
-      btn.disabled = false;
-      btn.textContent = "Find my photos";
-      progWrap.style.display = "none";
-      status.textContent = "Something went wrong analyzing your selfie. Please try again.";
-      showToast("Face search failed — please try again", "error");
-    });
-}
+    }
+    fill.style.width = '15%';
+    var photos = gallery.photos || [];
+    var matches = [];
+    var i = 0;
+    btn.textContent = 'Scanning ' + photos.length + ' photos...';
 
-function showFaceResults(matches) {
-  var grid = document.getElementById("faceResultGrid");
-  var html = "";
-  matches.forEach(function (m) {
-    html += '<div class="face-result-item" onclick="window.open(\'' + m.url + '\',\'_blank\')"><img src="' + m.url + '"><div class="face-match-pct">' + m.pct + '%</div></div>';
+    function next() {
+      if (i >= photos.length) {
+        fill.style.width = '100%';
+        btn.disabled = false; btn.textContent = 'Find my photos';
+        if (!matches.length) {
+          status.textContent = 'No matching photos found. Try a clearer selfie or browse manually.';
+          toast('No matches found', '');
+        } else {
+          matches.sort(function(a, b) { return b.pct - a.pct; });
+          status.textContent = 'Found ' + matches.length + ' photo' + (matches.length === 1 ? '' : 's') + ' with your face';
+          var html = '';
+          matches.forEach(function(m) { html += '<div class="match-item"><img src="' + m.url + '" crossorigin="anonymous"><div class="match-pct">' + m.pct + '%</div></div>'; });
+          document.getElementById('matchGrid').innerHTML = html;
+          toast('Found ' + matches.length + ' photo(s) ✦', 'ok');
+        }
+        setTimeout(function() { prog.style.display = 'none'; }, 700);
+        return;
+      }
+      var p = photos[i];
+      status.textContent = 'Scanning photo ' + (i + 1) + ' of ' + photos.length + '...';
+      fill.style.width = (15 + ((i + 1) / photos.length) * 75) + '%';
+
+      if (!p.url) { i++; next(); return; }
+
+      loadImgFromUrl(p.url).then(function(pImg) {
+        return faceapi.detectAllFaces(pImg, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
+      }).then(function(dets) {
+        var best = Infinity;
+        dets.forEach(function(d) { var dist = faceapi.euclideanDistance(det.descriptor, d.descriptor); if (dist < best) best = dist; });
+        if (best < 0.6) matches.push({ url: p.url, pct: Math.round((1 - best) * 100) });
+      }).catch(function() {}).then(function() { i++; next(); });
+    }
+    next();
+    return null;
+  }).catch(function(err) {
+    console.error('AI error:', err);
+    btn.disabled = false; btn.textContent = 'Find my photos';
+    prog.style.display = 'none';
+    status.textContent = 'Something went wrong. Please try again.';
   });
-  grid.innerHTML = html;
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  loadGalleryFromURL();
-  document.querySelectorAll(".modal-overlay").forEach(function (o) {
-    o.addEventListener("click", function (e) {
-      if (e.target === this) this.classList.remove("open");
-    });
-  });
-});
-
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape") { closeLB(); closeFilmModal(); closeFaceModal(); }
-  if (document.getElementById("lightbox").classList.contains("open")) {
-    if (e.key === "ArrowLeft") lbNav(-1);
-    if (e.key === "ArrowRight") lbNav(1);
-  }
-});
 </script>
 </body>
 </html>
