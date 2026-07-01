@@ -1,23 +1,18 @@
 // api/auth/google/callback.js
-//
-// Google redirects the user back here after they approve access.
-// This file does the one truly sensitive step: exchanging the
-// temporary "code" Google gave us for a real access token + refresh
-// token, using GOOGLE_CLIENT_SECRET. This exchange MUST happen on
-// the server — the secret can never be sent to the browser.
-//
-// After exchanging, it saves the tokens to Firestore under the
-// photographer's studio document, then redirects them back to the
-// dashboard with a success flag.
+// Google redirects here after the user approves Drive access.
+// Exchanges the code for real tokens and saves them to Firestore.
 
 import { saveDriveTokensForStudio } from '../../../lib/firebaseAdmin.js';
 
+const CLIENT_ID = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
+const SITE_URL = 'https://framestudio-three.vercel.app';
+const REDIRECT_URI = `${SITE_URL}/api/auth/google/callback`;
+
 export default async function handler(req, res) {
   const { code, state, error } = req.query;
-  const siteUrl = process.env.SITE_URL || 'https://framestudio-three.vercel.app';
 
   if (error) {
-    res.redirect(302, `${siteUrl}/index.html?drive_error=${encodeURIComponent(error)}`);
+    res.redirect(302, `${SITE_URL}/index.html?drive_error=${encodeURIComponent(error)}`);
     return;
   }
 
@@ -35,25 +30,21 @@ export default async function handler(req, res) {
     return;
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = `${siteUrl}/api/auth/google/callback`;
-
-  if (!clientId || !clientSecret) {
-    res.status(500).send('Server is missing Google OAuth credentials.');
+  if (!clientSecret) {
+    res.status(500).send('Server is missing GOOGLE_CLIENT_SECRET.');
     return;
   }
 
   try {
-    // Exchange the authorization code for real tokens.
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         code,
-        client_id: clientId,
+        client_id: CLIENT_ID,
         client_secret: clientSecret,
-        redirect_uri: redirectUri,
+        redirect_uri: REDIRECT_URI,
         grant_type: 'authorization_code'
       })
     });
@@ -61,15 +52,11 @@ export default async function handler(req, res) {
     const tokenData = await tokenResponse.json();
 
     if (!tokenResponse.ok) {
-      console.error('Google token exchange failed:', tokenData);
-      res.redirect(302, `${siteUrl}/index.html?drive_error=token_exchange_failed`);
+      console.error('Token exchange failed:', tokenData);
+      res.redirect(302, `${SITE_URL}/index.html?drive_error=token_exchange_failed`);
       return;
     }
 
-    // tokenData contains: access_token, refresh_token, expires_in, scope, token_type
-    // refresh_token only appears the FIRST time a user consents — store it carefully.
-
-    // Get the connected Google account's email for display purposes.
     const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` }
     });
@@ -82,9 +69,9 @@ export default async function handler(req, res) {
       connectedEmail: profile.email || null
     });
 
-    res.redirect(302, `${siteUrl}/index.html?drive_connected=true`);
+    res.redirect(302, `${SITE_URL}/index.html?drive_connected=true`);
   } catch (err) {
     console.error('OAuth callback error:', err);
-    res.redirect(302, `${siteUrl}/index.html?drive_error=server_error`);
+    res.redirect(302, `${SITE_URL}/index.html?drive_error=server_error`);
   }
 }
