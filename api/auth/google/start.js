@@ -1,36 +1,19 @@
-// api/auth/google/start.js
-// Redirects the photographer to Google's real OAuth consent screen.
-// Client ID is hardcoded since it is not secret.
+const CLIENT_ID = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
+const SITE_URL  = 'https://framestudio-three.vercel.app';
 
 export default function handler(req, res) {
-  const clientId = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
-  const siteUrl = 'https://framestudio-three.vercel.app';
-
   const studioId = req.query.studioId;
-  if (!studioId) {
-    res.status(400).send('Missing studioId.');
-    return;
-  }
-
-  const redirectUri = `${siteUrl}/api/auth/google/callback`;
-
-  const scopes = [
-    'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/userinfo.email'
-  ].join(' ');
-
-  const state = encodeURIComponent(JSON.stringify({ studioId }));
+  if (!studioId) { res.status(400).send('Missing studioId'); return; }
 
   const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
+    client_id:     CLIENT_ID,
+    redirect_uri:  SITE_URL + '/api/auth/google/callback',
     response_type: 'code',
-    scope: scopes,
-    access_type: 'offline',
-    prompt: 'consent',
-    state
+    scope:         'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email',
+    access_type:   'offline',
+    prompt:        'consent',
+    state:         encodeURIComponent(JSON.stringify({ studioId }))
   });
 
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-  res.redirect(302, googleAuthUrl);
+  res.redirect(302, 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString());
 }
