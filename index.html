@@ -1164,9 +1164,29 @@ async function doLogin(mode){
 
 async function completeLogin(uid, isNewUser){
   isLoggedIn=true;
-  const profile = await window.FrameStudioFirebase.getStudioProfile(uid);
-  currentUser={uid, name:profile.name, studio:profile.studio, email:profile.email};
+  let profile = await window.FrameStudioFirebase.getStudioProfile(uid);
+
+  // Profile missing — can happen if Google sign-in user's first session
+  // had a network error during profile creation, or if they signed up
+  // via Google on a new device before the profile write completed.
+  if(!profile){
+    const firebaseUser = window.FrameStudioFirebase.auth.currentUser;
+    const fallbackName = firebaseUser?.displayName || 'Studio Owner';
+    const fallbackEmail = firebaseUser?.email || '';
+    const fallbackStudio = fallbackName + ' Studio';
+    await window.FrameStudioFirebase.createStudioProfile(uid, {
+      name: fallbackName,
+      studio: fallbackStudio,
+      email: fallbackEmail
+    });
+    profile = { name: fallbackName, studio: fallbackStudio, email: fallbackEmail };
+    isNewUser = true; // treat as new so onboarding shows
+  }
+
+  currentUser = { uid, name: profile.name, studio: profile.studio, email: profile.email };
   driveConnected = !!(profile.drive && profile.drive.connected);
+  driveEmail = (profile.drive && profile.drive.connectedEmail) || '';
+
   document.getElementById('navRight').style.display='none';
   document.getElementById('navRightLogged').style.display='flex';
   document.getElementById('userBadge').textContent=profile.studio;
@@ -1176,9 +1196,18 @@ async function completeLogin(uid, isNewUser){
   document.getElementById('profileStudioName').value=profile.studio;
   document.getElementById('profileEmail').value=profile.email;
   updateDriveUI();
-  galleries = await window.FrameStudioFirebase.getGalleries(uid);
+
+  // Load this studio's saved galleries from Firestore
+  try {
+    galleries = await window.FrameStudioFirebase.getGalleries(uid);
+  } catch(err) {
+    console.error('Failed to load galleries:', err);
+    galleries = [];
+  }
+
   renderOverview();
   renderGalleryCards();
+
   if(isNewUser && !driveConnected){
     showPage('onboard');
   } else {
