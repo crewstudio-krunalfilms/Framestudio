@@ -1307,12 +1307,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!window.FS) return;
     clearInterval(waitFS);
     let authResolved = false;
+
+    // Fallback — if auth doesn't resolve in 5 seconds, show home page
+    const authTimeout = setTimeout(() => {
+      if (!authResolved) { authResolved = true; go('home'); }
+    }, 5000);
+
     window.FS.onAuth(async fbUser => {
+      if (authResolved && !fbUser) return;
+      clearTimeout(authTimeout);
       if (fbUser && !user) {
+        authResolved = true;
         await afterLogin(fbUser);
         window.history.replaceState({}, '', '/');
       } else if (!fbUser && !authResolved) {
-        // No user logged in — show home page
         authResolved = true;
         go('home');
       } else if (!fbUser && user) {
