@@ -1301,34 +1301,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
 
-  // Restore session if user was logged in
-  // NOTE: read URL params BEFORE clearing them so afterLogin can use them
-  const waitFS = setInterval(() => {
-    if (!window.FS) return;
-    clearInterval(waitFS);
-    let authResolved = false;
+  // Restore session — wait for firebase-init.js to signal ready
+  let authResolved = false;
 
-    // Fallback — if auth doesn't resolve in 5 seconds, show home page
-    const authTimeout = setTimeout(() => {
-      if (!authResolved) { authResolved = true; go('home'); }
-    }, 5000);
+  // Hard fallback — show home after 8 seconds no matter what
+  const hardTimeout = setTimeout(() => {
+    if (!authResolved) { authResolved = true; go('home'); }
+  }, 8000);
 
+  function initAuth() {
+    if (!window.FS) { go('home'); return; }
     window.FS.onAuth(async fbUser => {
-      if (authResolved && !fbUser) return;
-      clearTimeout(authTimeout);
-      if (fbUser && !user) {
-        authResolved = true;
+      if (authResolved) return;
+      clearTimeout(hardTimeout);
+      authResolved = true;
+      if (fbUser) {
         await afterLogin(fbUser);
         window.history.replaceState({}, '', '/');
-      } else if (!fbUser && !authResolved) {
-        authResolved = true;
+      } else {
         go('home');
-      } else if (!fbUser && user) {
-        user = null;
       }
-      authResolved = true;
     });
-  }, 80);
+  }
+
+  if (window.FS) {
+    initAuth();
+  } else {
+    window.addEventListener('fs-ready', initAuth, { once: true });
+  }
 });
 
 document.addEventListener('keydown', e => {
