@@ -1054,6 +1054,11 @@ async function startUpload() {
   const waiting = edFiles.filter(f => f.status === 'waiting');
   if (!waiting.length) return;
 
+  // Sanitize filenames — remove spaces and special chars that cause Drive API issues
+  waiting.forEach(item => {
+    item.safeName = item.name.replace(/[^\w.-]/g, '_').replace(/\s+/g, '_');
+  });
+
   document.getElementById('opWrap').style.display = 'block';
   document.getElementById('uploadBtn').disabled = true;
   document.getElementById('opTotal').textContent = waiting.length;
@@ -1072,8 +1077,8 @@ async function startUpload() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           studioId: user.uid,
-          galleryFolderName: activeGallery.folderName,
-          fileName: item.name,
+          galleryFolderName: activeGallery.folderName.replace(/[^\w\s&.-]/g, '').trim(),
+          fileName: item.safeName || item.name,
           fileType: item.type,
           fileBase64: base64
         })
