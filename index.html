@@ -288,7 +288,12 @@ footer{background:var(--mocha2);padding:2rem clamp(1.25rem,4vw,5rem);border-top:
 </div>
 
 <!-- HOME -->
-<div class="page active" id="page-home">
+<div class="page active" id="page-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;background:var(--cream)">
+  <div style="width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--rose);border-radius:50%;animation:spin 0.7s linear infinite"></div>
+  <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--text3)">Loading...</div>
+</div>
+
+<div class="page" id="page-home">
   <section class="hero">
     <div class="hero-left">
       <div class="hero-tag">Wedding gallery platform</div>
@@ -1301,14 +1306,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const waitFS = setInterval(() => {
     if (!window.FS) return;
     clearInterval(waitFS);
+    let authResolved = false;
     window.FS.onAuth(async fbUser => {
       if (fbUser && !user) {
         await afterLogin(fbUser);
-        // Clear URL params only after afterLogin has processed them
         window.history.replaceState({}, '', '/');
+      } else if (!fbUser && !authResolved) {
+        // No user logged in — show home page
+        authResolved = true;
+        go('home');
       } else if (!fbUser && user) {
         user = null;
       }
+      authResolved = true;
     });
   }, 80);
 });
