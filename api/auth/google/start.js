@@ -1,5 +1,5 @@
 const CLIENT_ID = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
-const SITE_URL  = 'https://framestudio-three.vercel.app';
+const SITE_URL  = 'https://project-bzwee.vercel.app';
 
 export default function handler(req, res) {
   const studioId = req.query.studioId;
