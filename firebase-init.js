@@ -8,8 +8,7 @@ const app = initializeApp({
   projectId: "frame-studio-481c4",
   storageBucket: "frame-studio-481c4.firebasestorage.app",
   messagingSenderId: "644674946255",
-  appId: "1:644674946255:web:cb08325f7c9bfad86fe3ba",
-  measurementId: "G-FEPTTW37MX"
+  appId: "1:644674946255:web:cb08325f7c9bfad86fe3ba"
 });
 
 const auth = getAuth(app);
@@ -57,3 +56,6 @@ window.FS = {
     return null;
   }
 };
+
+// Signal that Firebase is ready
+window.dispatchEvent(new Event('fs-ready'));
