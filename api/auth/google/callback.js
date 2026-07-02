@@ -1,7 +1,7 @@
 import { saveDriveTokens } from '../../../lib/firebaseAdmin.js';
 
 const CLIENT_ID    = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
-const SITE_URL     = 'https://framestudio-three.vercel.app';
+const SITE_URL     = 'https://project-bzwee.vercel.app';
 const REDIRECT_URI = SITE_URL + '/api/auth/google/callback';
 
 export default async function handler(req, res) {
