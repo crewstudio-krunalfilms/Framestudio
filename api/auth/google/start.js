@@ -1,4 +1,4 @@
-const CLIENT_ID = '644674946255-ceq37p181dvmk17bc2j9pvpmmblrtgbr.apps.googleusercontent.com';
+const CLIENT_ID = '644674946255-8jmvsse54912vlpgt0ehggj6lab0a0c6.apps.googleusercontent.com';
 const SITE_URL  = 'https://project-bzwee.vercel.app';
 
 export default function handler(req, res) {
