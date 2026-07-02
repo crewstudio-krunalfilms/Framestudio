@@ -787,21 +787,21 @@ async function afterLogin(fbUser) {
   renderGalCards();
 
   const params = new URLSearchParams(window.location.search);
+  let driveJustConnected = false;
   if (params.get('drive_connected') === '1') {
+    driveJustConnected = true;
     driveConnected = true;
     driveEmail = '';
     const freshP = await window.FS.getProfile(fbUser.uid);
     if (freshP && freshP.drive) driveEmail = freshP.drive.connectedEmail || '';
     updateDriveUI();
     toast('Google Drive connected ✦', 'ok');
-    window.history.replaceState({}, '', '/');
   }
   if (params.get('drive_error')) {
     toast('Drive connection failed: ' + params.get('drive_error'), 'err');
-    window.history.replaceState({}, '', '/');
   }
 
-  if (galleries.length === 0 && !driveConnected) { go('onboard'); } else { go('dashboard'); }
+  if (galleries.length === 0 && !driveConnected && !driveJustConnected) { go('onboard'); } else { go('dashboard'); }
 }
 
 async function doSignOut() {
@@ -1291,19 +1291,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
 
-  // Handle Drive OAuth redirect
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('drive_connected') === '1' || params.get('drive_error')) {
-    window.history.replaceState({}, '', '/');
-  }
-
   // Restore session if user was logged in
+  // NOTE: read URL params BEFORE clearing them so afterLogin can use them
   const waitFS = setInterval(() => {
     if (!window.FS) return;
     clearInterval(waitFS);
     window.FS.onAuth(async fbUser => {
       if (fbUser && !user) {
         await afterLogin(fbUser);
+        // Clear URL params only after afterLogin has processed them
+        window.history.replaceState({}, '', '/');
       } else if (!fbUser && user) {
         user = null;
       }
